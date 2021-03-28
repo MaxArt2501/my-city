@@ -1,0 +1,86 @@
+@property --cell-size {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 5vmin;
+}
+@property --city-width {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+@property --city-height {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+*, ::before, ::after {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+section {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  justify-content: center;
+  line-height: var(--cell-size);
+  text-align: center;
+  font-size: calc(var(--cell-size) / 2);
+  --cell-size: 5vmin;
+}
+.hints {
+  background-color: #def;
+  display: flex;
+}
+.top {
+  grid-area: 1 / 2 / 2 / 3;
+  height: var(--cell-size);
+}
+.right {
+  grid-area: 2 / 3 / 3 / 4;
+  width: var(--cell-size);
+  flex-direction: column;
+}
+.bottom {
+  grid-area: 3 / 2 / 4 / 3;
+  height: var(--cell-size);
+  flex-direction: row-reverse;
+}
+.left {
+  grid-area: 2 / 1 / 3 / 2;
+  width: var(--cell-size);
+  flex-direction: column-reverse;
+}
+
+.city {
+  display: grid;
+  grid-area: 2 / 2 / 3 / 3;
+  width: calc(var(--cell-size) * var(--city-width, 1));
+  height: calc(var(--cell-size) * var(--city-height, 1));
+  grid-template-columns: repeat(var(--city-width), minmax(0, var(--cell-size)));
+  background-color: white;
+}
+
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1px solid;
+}
+.error {
+  color: red;
+}
+.city > .cell:hover {
+  background-color: khaki;
+}
+.cell[contenteditable="true"] {
+  border-color: lightcoral;
+  box-shadow: 0 0 0 calc(var(--cell-size) / 15)  lightcoral;
+  position: relative;
+}
