@@ -10,6 +10,11 @@
  * @property {string} message
  * @property {number} index
  */
+/**
+ * @typedef {object} StairsRanges
+ * @property {number[]} start
+ * @property {number[]} end
+ */
 
 /**
  * Load a JSON file of cities
@@ -131,6 +136,26 @@ function handleInput(event) {
 }
 
 function checkForErrors() {
+  const fieldErrors = getFieldErrors();
+  const fieldIndexes = fieldErrors.map(({ index }) => index);
+  field.querySelectorAll('.city > .cell').forEach((cell, index) => {
+    cell.classList.toggle('error', fieldIndexes.includes(index));
+  });
+
+  const borderErrors = getBorderErrors();
+  const borderIndexes = borderErrors.map(({ index }) => index);
+  field.querySelectorAll('.hints > .cell').forEach((cell, index) => {
+    cell.classList.toggle('error', borderIndexes.includes(index));
+  });
+
+  gameErrors = [...fieldErrors, ...borderErrors];
+}
+
+/**
+ * Returns errors for duplicate building heights in rows and columns
+ * @returns {GameError[]}
+ */
+function getFieldErrors() {
   /** @type {GameError[]} */
   const errors = [];
   buildings.forEach((row, rowIndex) => {
@@ -158,12 +183,119 @@ function checkForErrors() {
       }
     });
   });
-  const errorIndexes = errors.filter(({ type }) => type === 'cell').map(({ index }) => index);
-  field.querySelectorAll('.city > .cell').forEach((cell, index) => {
-    cell.classList.toggle('error', errorIndexes.includes(index));
-  });
+  return errors;
+}
 
-  gameErrors = errors;
+/**
+ * Returns errors for unsatisfied border hints
+ * @returns {GameError[]}
+ */
+function getBorderErrors() {
+  /** @type {GameError[]} */
+  const errors = [];
+  for (let index = 0; index < currentCity.height; index++) {
+    const startHint = currentCity.borderHints[3][currentCity.height - index - 1];
+    const endHint = currentCity.borderHints[1][index];
+    if (!startHint && !endHint) {
+      continue;
+    }
+
+    const row = buildings[index];
+    const ranges = getStairsRanges(row);
+    if ((startHint && startHint < ranges.start[0]) || startHint > ranges.start[1]) {
+      errors.push({
+        type: 'border',
+        message: `The constraint "${startHint}" cannot be satisfied`,
+        index: 2 * (currentCity.width + currentCity.height) - index - 1
+      });
+    }
+    if ((endHint && endHint < ranges.end[0]) || endHint > ranges.end[1]) {
+      errors.push({
+        type: 'border',
+        message: `The constraint "${endHint}" cannot be satisfied`,
+        index: currentCity.width + index
+      });
+    }
+  }
+  for (let index = 0; index < currentCity.width; index++) {
+    const startHint = currentCity.borderHints[0][index];
+    const endHint = currentCity.borderHints[2][currentCity.width - index - 1];
+    if (!startHint && !endHint) {
+      continue;
+    }
+
+    const column = buildings.map(row => row[index]);
+    const ranges = getStairsRanges(column);
+    if ((startHint && startHint < ranges.start[0]) || startHint > ranges.start[1]) {
+      errors.push({
+        type: 'border',
+        message: `The constraint "${startHint}" cannot be satisfied`,
+        index
+      });
+    }
+    if ((endHint && endHint < ranges.end[0]) || endHint > ranges.end[1]) {
+      errors.push({
+        type: 'border',
+        message: `The constraint "${endHint}" cannot be satisfied`,
+        index: currentCity.width + currentCity.height - index - 1
+      });
+    }
+  }
+  return errors;
+}
+
+/**
+ * @param {number[]} sequence
+ * @returns {StairsRanges}
+ */
+function getStairsRanges(sequence) {
+  const availableHeights = Array.from({ length: sequence.length }, (_, index) => index + 1).filter(height => !sequence.includes(height));
+  if (availableHeights.length > 0) {
+    const ascendingFilled = fillSequence(sequence, availableHeights);
+    const maxStart = getStairsLength(ascendingFilled);
+    const minEnd = getStairsLength(ascendingFilled.slice().reverse());
+    const descendingFilled = fillSequence(sequence, availableHeights.slice().reverse());
+    const maxEnd = getStairsLength(descendingFilled.slice().reverse());
+    const minStart = getStairsLength(descendingFilled);
+    return {
+      start: [minStart, maxStart],
+      end: [minEnd, maxEnd]
+    };
+  }
+  const startLength = getStairsLength(sequence);
+  const endLength = getStairsLength(sequence.slice().reverse());
+  return {
+    start: [startLength, startLength],
+    end: [endLength, endLength]
+  };
+}
+
+/**
+ * @param {number[]} sequence
+ * @returns {number}
+ */
+function getStairsLength(sequence) {
+  let count = 0;
+  let previous = 0;
+  for (const height of sequence) {
+    if (height > previous) {
+      previous = height;
+      count++;
+    }
+  }
+  return count;
+}
+
+/**
+ * Replaces the 0s in the sequence with the filler numbers given as the second
+ * parameter.
+ * @param {number[]} sequence
+ * @param {number[]} fillers
+ * @returns {number[]}
+ */
+function fillSequence(sequence, fillers) {
+  let fillerIndex = 0;
+  return sequence.map(height => height || fillers[fillerIndex++]);
 }
 
 async function main() {
