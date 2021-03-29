@@ -226,18 +226,18 @@ function getBorderErrors() {
 
     const column = buildings.map(row => row[index]);
     const ranges = getStairsRanges(column);
-    if ((startHint && startHint < ranges.start[0]) || startHint > ranges.start[1]) {
+    if (startHint && (startHint < ranges.start[0] || startHint > ranges.start[1])) {
       errors.push({
         type: 'border',
         message: `The constraint "${startHint}" cannot be satisfied`,
         index
       });
     }
-    if ((endHint && endHint < ranges.end[0]) || endHint > ranges.end[1]) {
+    if (endHint && (endHint < ranges.end[0] || endHint > ranges.end[1])) {
       errors.push({
         type: 'border',
         message: `The constraint "${endHint}" cannot be satisfied`,
-        index: currentCity.width + currentCity.height - index - 1
+        index: 2 * currentCity.width + currentCity.height - index - 1
       });
     }
   }
