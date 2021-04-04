@@ -27,6 +27,7 @@ async function loadCities(path = './cities.json') {
 }
 
 const field = document.querySelector('section');
+const output = document.querySelector('p');
 const borderNames = ['top', 'right', 'bottom', 'left'];
 
 field.addEventListener('click', ({ target }) => {
@@ -137,18 +138,50 @@ function handleInput(event) {
 
 function checkForErrors() {
   const fieldErrors = getFieldErrors();
-  const fieldIndexes = fieldErrors.map(({ index }) => index);
-  field.querySelectorAll('.city > .cell').forEach((cell, index) => {
-    cell.classList.toggle('error', fieldIndexes.includes(index));
-  });
+  fillErrors('.city > .cell', fieldErrors);
 
   const borderErrors = getBorderErrors();
-  const borderIndexes = borderErrors.map(({ index }) => index);
-  field.querySelectorAll('.hints > .cell').forEach((cell, index) => {
-    cell.classList.toggle('error', borderIndexes.includes(index));
-  });
+  fillErrors('.hints > .cell', borderErrors);
 
   gameErrors = [...fieldErrors, ...borderErrors];
+  checkForCompletion();
+}
+
+/**
+ * @param {string} selector CSS selector of the cells
+ * @param {GameError[]} errors Errors to be applied to the cells
+ */
+function fillErrors(selector, errors) {
+  field.querySelectorAll(selector).forEach((cell, index) => {
+    const cellErrors = errors.filter(error => error.index === index);
+    cell.classList.toggle('error', cellErrors.length > 0);
+    cell.dataset.errors = JSON.stringify(cellErrors);
+    if (cellErrors.length > 0) {
+      const errorWrapper = document.createElement('div');
+      errorWrapper.setAttribute('role', 'tooltip');
+      errorWrapper.className = 'errors';
+      if (cellErrors.length > 1) {
+        const list = document.createElement('ul');
+        for (const error of cellErrors) {
+          const item = document.createElement('li');
+          item.textContent = error.message;
+          list.appendChild(item);
+        }
+        errorWrapper.appendChild(list);
+      } else {
+        errorWrapper.textContent = cellErrors[0].message;
+      }
+      cell.appendChild(errorWrapper);
+    } else {
+      cell.querySelector('.errors')?.remove();
+    }
+  });
+}
+
+function checkForCompletion() {
+  const hasGaps = buildings.flat().includes(0);
+  const isComplete = !hasGaps && !gameErrors.length;
+  output.textContent = isComplete ? 'Completed!' : '';
 }
 
 /**
@@ -297,6 +330,8 @@ function fillSequence(sequence, fillers) {
   let fillerIndex = 0;
   return sequence.map(height => height || fillers[fillerIndex++]);
 }
+
+function showErrorsTooltip() {}
 
 async function main() {
   const cities = await loadCities();
