@@ -57,6 +57,9 @@ let gameErrors;
 
 let markMode = false;
 
+/** @type {string[]} */
+let history;
+
 /**
  * Renders a city
  * @param {City} cityData
@@ -105,6 +108,9 @@ function initializeCity(cityData) {
     marks.push(marksRow);
   }
   field.appendChild(city);
+
+  history = [];
+  updateHistory();
   updateStatus();
 }
 
@@ -226,6 +232,15 @@ function updateStatus() {
   const hasGaps = buildings.flat().includes(0);
   const isComplete = !hasGaps && !gameErrors.length;
   output.textContent = isComplete ? 'Completed!' : markMode ? 'Mark mode' : 'Enter mode';
+}
+
+function updateHistory() {
+  const state = serializeState();
+  const lastState = history[history.length - 1];
+  if (state !== lastState) {
+    history.push(btoa(state));
+    localStorage.setItem(btoa(serializeCity()), JSON.stringify(history));
+  }
 }
 
 /**
@@ -373,6 +388,51 @@ function getStairsLength(sequence) {
 function fillSequence(sequence, fillers) {
   let fillerIndex = 0;
   return sequence.map(height => height || fillers[fillerIndex++]);
+}
+
+function serializeCity() {
+  const cityData = new Uint8Array(1 + currentCity.width + currentCity.height);
+  cityData[0] = currentCity.width + (currentCity.height << 4);
+
+  currentCity.borderHints[0].forEach((topHint, index) => {
+    const bottomHint = currentCity.borderHints[2][currentCity.width - index - 1];
+    cityData[index + 1] = topHint + (bottomHint << 4);
+  });
+
+  currentCity.borderHints[1].forEach((rightHint, index) => {
+    const leftHint = currentCity.borderHints[3][currentCity.height - index - 1];
+    cityData[index + 1 + currentCity.width] = leftHint + (rightHint << 4);
+  });
+
+  return new TextDecoder().decode(cityData.buffer);
+}
+
+/**
+ * Returns a string representing the current state
+ * @returns {string}
+ */
+function serializeState() {
+  const citySize = currentCity.width * currentCity.height;
+  const cityState = new Uint8Array(Math.ceil(citySize * 2.5));
+
+  /** @type {number[]} */
+  const allCells = buildings.flat();
+  allCells.forEach((value, index) =>{
+    const cityIndex = index >> 1;
+    cityState[cityIndex] = cityIndex[cityIndex] + (value << (index & 1 ? 4 : 0));
+  });
+
+  const marksData = new Uint16Array(citySize);
+  /** @type {Set<number>[]} */
+  const allMarks = marks.flat();
+  allMarks.forEach((cellMarks, index) => {
+    for (const mark of cellMarks) {
+      marksData[index] = marksData[index] ^ (1 << (mark - 1));
+    }
+  });
+
+  cityState.set(marksData.buffer, Math.ceil(citySize / 2));
+  return new TextDecoder().decode(cityState.buffer);
 }
 
 async function main() {
