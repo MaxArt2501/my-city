@@ -15,6 +15,11 @@
  * @property {number[]} start
  * @property {number[]} end
  */
+/**
+ * @typedef {object} State
+ * @property {number[][]} buildings
+ * @property {Set<number>[][]} marks
+ */
 
 /**
  * Load a JSON file of cities
@@ -181,9 +186,10 @@ function updateCellValue(valueContainer, value) {
   } else if (!markMode) {
     buildings[row][column] = value;
     valueContainer.textContent = value || '';
-    checkForErrors();
   }
   valueContainer.blur();
+  checkForErrors();
+  updateHistory();
 }
 
 function checkForErrors() {
@@ -450,7 +456,7 @@ function serializeState() {
   const allCells = buildings.flat();
   allCells.forEach((value, index) =>{
     const cityIndex = index >> 1;
-    cityState[cityIndex] = cityIndex[cityIndex] + (value << (index & 1 ? 4 : 0));
+    cityState[cityIndex] = cityState[cityIndex] + (value << (index & 1 ? 4 : 0));
   });
 
   const marksData = new Uint16Array(citySize);
@@ -462,8 +468,45 @@ function serializeState() {
     }
   });
 
-  cityState.set(marksData.buffer, Math.ceil(citySize / 2));
+  cityState.set(new Uint8Array(marksData.buffer), Math.ceil(citySize / 2));
   return new TextDecoder().decode(cityState.buffer);
+}
+
+/**
+ * Returns a deserialized structured game state
+ * @param {string} serialized
+ * @param {number} width
+ * @param {number} height
+ * @returns {State}
+ */
+function deserializeState(serialized, width, height) {
+  const stateData = new TextEncoder().encode(serialized);
+  const citySize = width * height;
+  const values = Array.from({ length: citySize }, (_, index) => {
+    const byte = stateData[index >> 1];
+    return index & 1 ? byte >> 4 : byte & 15;
+  });
+
+  const markOffset = Math.ceil(citySize / 2);
+  const maxValue = Math.max(width, height);
+  const markData = new Uint16Array(stateData.buffer.slice(markOffset));
+  /** @type {State} */
+  const state = {
+    buildings: Array.from({ length: height }, (_, index) => values.slice(index * width, (index + 1) * width)),
+    marks: Array.from({ length: height }, (_, row) => Array.from({ length: width }, (_, column) => {
+      /** @type {Set<number>} */
+      const cellMarks = new Set();
+      const index = row * width + column;
+      const markByte = markData[index];
+      for (let value = 1; value <= maxValue; value++) {
+        if (markByte & (1 << (value - 1))) {
+          cellMarks.add(value);
+        }
+      }
+      return cellMarks;
+    }))
+  };
+  return state;
 }
 
 async function main() {
