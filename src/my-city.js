@@ -408,6 +408,37 @@ function serializeCity() {
 }
 
 /**
+ * Deserializes a serialized city
+ * @param {string} serialized
+ * @returns {City}
+ */
+function deserializeCity(serialized) {
+  const cityData = new TextEncoder().encode(serialized);
+  const width = cityData[0] & 15;
+  const height = cityData[0] >> 4;
+
+  /** @type {City} */
+  const city = {
+    width,
+    height,
+    borderHints: [new Array(width), new Array(height), new Array(width), new Array(height)]
+  };
+  for (let index = 0; index < city.width; index++) {
+    const topHint = cityData[index + 1] & 15;
+    const bottomHint = cityData[index + 1] >> 4;
+    city.borderHints[0][index] = topHint;
+    city.borderHints[2][city.width - index - 1] = bottomHint;
+  }
+  for (let index = 0; index < city.height; index++) {
+    const leftHint = cityData[index + city.width + 1] & 15;
+    const rightHint = cityData[index + city.width + 1] >> 4;
+    city.borderHints[1][index] = rightHint;
+    city.borderHints[3][city.height - index - 1] = leftHint;
+  }
+  return city;
+}
+
+/**
  * Returns a string representing the current state
  * @returns {string}
  */
