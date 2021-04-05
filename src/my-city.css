@@ -13,6 +13,14 @@
   inherits: false;
   initial-value: 1;
 }
+@property --city-count-cols {
+  syntax: '<number>';
+  inherits: true;
+}
+@property --city-count-rows {
+  syntax: '<number>';
+  inherits: true;
+}
 
 *, ::before, ::after {
   box-sizing: border-box;
@@ -72,6 +80,9 @@ section {
   width: var(--cell-size);
   height: var(--cell-size);
   border: 1px solid;
+  display: grid;
+  grid-template-columns: repeat(var(--city-count-cols), 1fr);
+  grid-template-rows: repeat(var(--city-count-rows), 1fr);
 }
 .error {
   color: red;
@@ -79,8 +90,36 @@ section {
 .city > .cell:hover {
   background-color: khaki;
 }
-.cell[contenteditable="true"] {
+.value[contenteditable="true"] {
   border-color: lightcoral;
   box-shadow: 0 0 0 calc(var(--cell-size) / 15)  lightcoral;
   position: relative;
+}
+
+.value {
+  grid-area: 1 / 1 / span var(--city-count-rows) / span var(--city-count-cols);
+}
+.mark {
+  display: none;
+  pointer-events: none;
+  font-size: calc(1em / var(--city-count-rows));
+  line-height: calc(var(--cell-size) / var(--city-count-rows));
+}
+.mark::before {
+  content: attr(data-value);
+}
+.value:empty ~ .mark {
+  display: block;
+}
+
+.errors {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  transform: translate(0, -100%);
+  font-size: 75%;
+  background: red;
+  color: white;
+  margin-block-start: -0.5em;
 }

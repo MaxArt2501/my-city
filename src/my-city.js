@@ -31,16 +31,22 @@ const output = document.querySelector('p');
 const borderNames = ['top', 'right', 'bottom', 'left'];
 
 field.addEventListener('click', ({ target }) => {
-  const building = target.closest('.city > .cell');
-  if (building) {
-    handleClick(building);
+  const valueContainer = target.closest('.city .value');
+  if (valueContainer) {
+    handleClick(valueContainer);
+  }
+});
+document.addEventListener('keypress', event => {
+  if (event.key.toLowerCase() === 'm') {
+    markMode = !markMode;
+    updateStatus();
   }
 });
 
 /** @type {number[][]} */
 let buildings;
 
-/** @type {number[][][]} */
+/** @type {Set<number>[][]} */
 let marks;
 
 /** @type {City} */
@@ -49,12 +55,21 @@ let currentCity;
 /** @type {GameError[]} */
 let gameErrors;
 
+let markMode = false;
+
 /**
  * Renders a city
  * @param {City} cityData
  */
 function initializeCity(cityData) {
   currentCity = cityData;
+
+  const maxValue = Math.max(cityData.width, cityData.height);
+  const markColumns = Math.ceil(Math.sqrt(maxValue));
+  const markRows = Math.ceil((maxValue) / markColumns);
+  field.style.setProperty('--city-count-cols', markColumns);
+  field.style.setProperty('--city-count-rows', markRows);
+
   field.innerHTML = '';
   Array.from({ length: 4 }, (_, index) => cityData.borderHints[index]).forEach((hints, index) => {
     const wrapper = document.createElement('div');
@@ -63,7 +78,7 @@ function initializeCity(cityData) {
     for (const hint of hints) {
       const cell = document.createElement('div');
       cell.className = 'cell';
-      cell.textContent = hint || '';
+      cell.innerHTML = `<span class="value">${hint || ''}</span>`;
       wrapper.appendChild(cell);
     }
 
@@ -78,33 +93,38 @@ function initializeCity(cityData) {
   buildings = Array.from({ length: cityData.height }, () => Array(cityData.width).fill(0));
   marks = [];
   for (const row of buildings) {
+    /** @type {Set<number>[]} */
     const marksRow = [];
     for (const _ of row) {
       const cell = document.createElement('div');
       cell.className = 'cell';
+      cell.innerHTML = '<span class="value"></span>'
       city.appendChild(cell);
-      marksRow.push([]);
+      marksRow.push(new Set());
     }
     marks.push(marksRow);
   }
   field.appendChild(city);
+  updateStatus();
 }
 
 /**
  * Handles the click on a building cell
- * @param {HTMLDivElement} building
+ * @param {HTMLDivElement} valueContainer
  */
-function handleClick(building) {
-  for (const cell of building.parentElement.children) {
-    cell.contentEditable = cell === building;
+function handleClick(valueContainer) {
+  const editableContainer = field.querySelector('.value[contenteditable=true]');
+  if (editableContainer && valueContainer !== editableContainer) {
+    editableContainer.contentEditable = false;
   }
-  building.focus();
-  building.addEventListener('keydown', handleInput);
-  building.addEventListener(
+  valueContainer.contentEditable = true;
+  valueContainer.focus();
+  valueContainer.addEventListener('keydown', handleInput);
+  valueContainer.addEventListener(
     'blur',
     () => {
-      building.contentEditable = false;
-      building.removeEventListener('keydown', handleInput);
+      valueContainer.contentEditable = false;
+      valueContainer.removeEventListener('keydown', handleInput);
     },
     { once: true }
   );
@@ -115,25 +135,49 @@ function handleClick(building) {
  */
 function handleInput(event) {
   /** @type {HTMLDivElement} */
-  const building = event.target;
-  const cellIndex = Array.from(building.parentElement.children).indexOf(building);
-  const column = cellIndex % currentCity.width;
-  const row = Math.floor(cellIndex / currentCity.width);
+  const valueContainer = event.target;
   if (isFinite(event.key) && event.key !== '0' && +event.key <= Math.max(currentCity.width, currentCity.height)) {
-    building.textContent = event.key;
-    buildings[row][column] = +event.key;
-    building.blur();
-    checkForErrors();
+    updateCellValue(valueContainer, +event.key);
   } else if (event.key === 'Delete' || event.key === 'Backspace') {
-    building.textContent = '';
-    buildings[row][column] = 0;
-    building.blur();
-    checkForErrors();
+    updateCellValue(valueContainer, 0);
   } else if (event.key === 'Escape' || event.key === 'Enter') {
-    building.blur();
+    valueContainer.blur();
   } else {
     event.preventDefault();
   }
+}
+
+/**
+ * Updates the value of a cell
+ * @param {HTMLSpanElement} valueContainer
+ * @param {number} value
+ */
+function updateCellValue(valueContainer, value) {
+  const building = valueContainer.parentElement;
+  const cellIndex = Array.from(building.parentElement.children).indexOf(building);
+  const column = cellIndex % currentCity.width;
+  const row = Math.floor(cellIndex / currentCity.width);
+  if (markMode && value) {
+    let mark = building.querySelector(`.mark[data-value="${value}"]`);
+    if (mark) {
+      mark.remove();
+      marks[row][column].delete(value);
+    } else if (!mark && value) {
+      mark = document.createElement('span');
+      mark.className = 'mark';
+      mark.dataset.value = value;
+      const maxValue = Math.max(currentCity.width, currentCity.height);
+      const markColumns = Math.ceil(Math.sqrt(maxValue));
+      mark.style.gridArea = `${Math.floor((value - 1) / markColumns) + 1} / ${(value - 1) % markColumns + 1}`;
+      building.appendChild(mark);
+      marks[row][column].add(value);
+    }
+  } else if (!markMode) {
+    buildings[row][column] = value;
+    valueContainer.textContent = value || '';
+    checkForErrors();
+  }
+  valueContainer.blur();
 }
 
 function checkForErrors() {
@@ -144,7 +188,7 @@ function checkForErrors() {
   fillErrors('.hints > .cell', borderErrors);
 
   gameErrors = [...fieldErrors, ...borderErrors];
-  checkForCompletion();
+  updateStatus();
 }
 
 /**
@@ -178,10 +222,10 @@ function fillErrors(selector, errors) {
   });
 }
 
-function checkForCompletion() {
+function updateStatus() {
   const hasGaps = buildings.flat().includes(0);
   const isComplete = !hasGaps && !gameErrors.length;
-  output.textContent = isComplete ? 'Completed!' : '';
+  output.textContent = isComplete ? 'Completed!' : markMode ? 'Mark mode' : 'Enter mode';
 }
 
 /**
@@ -330,8 +374,6 @@ function fillSequence(sequence, fillers) {
   let fillerIndex = 0;
   return sequence.map(height => height || fillers[fillerIndex++]);
 }
-
-function showErrorsTooltip() {}
 
 async function main() {
   const cities = await loadCities();
