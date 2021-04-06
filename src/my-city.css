@@ -13,11 +13,11 @@
   inherits: false;
   initial-value: 1;
 }
-@property --city-count-cols {
+@property --mark-grid-cols {
   syntax: '<number>';
   inherits: true;
 }
-@property --city-count-rows {
+@property --mark-grid-rows {
   syntax: '<number>';
   inherits: true;
 }
@@ -81,8 +81,8 @@ section {
   height: var(--cell-size);
   border: 1px solid;
   display: grid;
-  grid-template-columns: repeat(var(--city-count-cols), 1fr);
-  grid-template-rows: repeat(var(--city-count-rows), 1fr);
+  grid-template-columns: repeat(var(--mark-grid-cols), 1fr);
+  grid-template-rows: repeat(var(--mark-grid-rows), 1fr);
 }
 .error {
   color: red;
@@ -97,13 +97,13 @@ section {
 }
 
 .value {
-  grid-area: 1 / 1 / span var(--city-count-rows) / span var(--city-count-cols);
+  grid-area: 1 / 1 / span var(--mark-grid-rows) / span var(--mark-grid-cols);
 }
 .mark {
   display: none;
   pointer-events: none;
-  font-size: calc(1em / var(--city-count-rows));
-  line-height: calc(var(--cell-size) / var(--city-count-rows));
+  font-size: calc(1em / var(--mark-grid-rows));
+  line-height: calc(var(--cell-size) / var(--mark-grid-rows));
 }
 .mark::before {
   content: attr(data-value);

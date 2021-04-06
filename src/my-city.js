@@ -34,6 +34,8 @@ async function loadCities(path = './cities.json') {
 const field = document.querySelector('section');
 const output = document.querySelector('p');
 const borderNames = ['top', 'right', 'bottom', 'left'];
+const borderWrappers = borderNames.map(name => field.querySelector(`.${name}.hints`));
+const cityWrapper = field.querySelector('.city');
 
 field.addEventListener('click', ({ target }) => {
   const valueContainer = target.closest('.city .value');
@@ -71,52 +73,97 @@ let history;
  */
 function initializeCity(cityData) {
   currentCity = cityData;
+  localStorage['.lastCity'] = btoa(serializeCity());
 
   const maxValue = Math.max(cityData.width, cityData.height);
   const markColumns = Math.ceil(Math.sqrt(maxValue));
   const markRows = Math.ceil((maxValue) / markColumns);
-  field.style.setProperty('--city-count-cols', markColumns);
-  field.style.setProperty('--city-count-rows', markRows);
+  field.style.setProperty('--mark-grid-cols', markColumns);
+  field.style.setProperty('--mark-grid-rows', markRows);
 
-  field.innerHTML = '';
-  Array.from({ length: 4 }, (_, index) => cityData.borderHints[index]).forEach((hints, index) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = `${borderNames[index]} hints`;
+  cityWrapper.style.setProperty('--city-width', cityData.width);
+  cityWrapper.style.setProperty('--city-height', cityData.height);
 
-    for (const hint of hints) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.innerHTML = `<span class="value">${hint || ''}</span>`;
-      wrapper.appendChild(cell);
+  if (history && history.length > 0) {
+    ({ buildings, marks } = deserializeState(atob(history[history.length - 1]), cityData.width, cityData.height));
+  } else {
+    ({ buildings, marks } = createEmptyState());
+    history = [];
+    updateHistory();
+  }
+  renderState();
+}
+
+function renderState() {
+  currentCity.borderHints.forEach((hints, index) => {
+    const wrapper = borderWrappers[index];
+    const lessBorderCells = wrapper.children.length < hints.length
+    while (wrapper.children.length !== hints.length) {
+      if (lessBorderCells) {
+        createCell(wrapper);
+      } else {
+        wrapper.lastChild.remove();
+      }
     }
-
-    field.appendChild(wrapper);
+    hints.forEach((hint, index) => {
+      wrapper.children[index].firstChild.textContent = hint || '';
+    });
   });
 
-  const city = document.createElement('div');
-  city.className = 'city';
-  city.style.setProperty('--city-width', cityData.width);
-  city.style.setProperty('--city-height', cityData.height);
-
-  buildings = Array.from({ length: cityData.height }, () => Array(cityData.width).fill(0));
-  marks = [];
-  for (const row of buildings) {
-    /** @type {Set<number>[]} */
-    const marksRow = [];
-    for (const _ of row) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.innerHTML = '<span class="value"></span>'
-      city.appendChild(cell);
-      marksRow.push(new Set());
+  const cellAmount = currentCity.width * currentCity.height;
+  const lessCityCells = cityWrapper.children.length < cellAmount;
+  while (cityWrapper.children.length !== cellAmount) {
+    if (lessCityCells) {
+      createCell(cityWrapper);
+    } else {
+      cityWrapper.lastChild.remove();
     }
-    marks.push(marksRow);
   }
-  field.appendChild(city);
+  buildings.forEach((data, row) => {
+    data.forEach((_, column) => {
+      const cell = cityWrapper.children[row * currentCity.width + column];
+      cell.firstChild.textContent = buildings[row][column] || '';
 
-  history = [];
-  updateHistory();
-  updateStatus();
+      const cellMarks = marks[row][column];
+      const markWrappers = cell.querySelectorAll('.mark');
+      Array.from(cellMarks).forEach((mark, index) => {
+        const wrapper = markWrappers[index];
+        if (wrapper) {
+          setupMark(mark, wrapper);
+        } else {
+          cell.appendChild(setupMark(mark));
+        }
+      });
+      for (let index = markWrappers.length - 1; index >= cellMarks.size; index--) {
+        markWrappers[index].remove();
+      }
+    });
+  });
+
+  checkForErrors();
+}
+
+/**
+ * Returns and empty state for the current city
+ * @returns {State}
+ */
+function createEmptyState() {
+  return {
+    buildings: Array.from({ length: currentCity.height }, () => Array(currentCity.width).fill(0)),
+    marks: Array.from({ length: currentCity.height }, () => Array.from({ length: currentCity.width }, () => new Set()))
+  };
+}
+
+/**
+ * Creates a cell element and appends it to the given parent
+ * @param {HTMLDivElement} parent
+ * @returns {HTMLDivElement}
+ */
+function createCell(parent) {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  cell.innerHTML = '<span class="value"></span>';
+  return parent.appendChild(cell);
 }
 
 /**
@@ -169,27 +216,33 @@ function updateCellValue(valueContainer, value) {
   const column = cellIndex % currentCity.width;
   const row = Math.floor(cellIndex / currentCity.width);
   if (markMode && value) {
-    let mark = building.querySelector(`.mark[data-value="${value}"]`);
-    if (mark) {
-      mark.remove();
+    const hasMark = marks[row][column].has(value);
+    if (hasMark) {
       marks[row][column].delete(value);
-    } else if (!mark && value) {
-      mark = document.createElement('span');
-      mark.className = 'mark';
-      mark.dataset.value = value;
-      const maxValue = Math.max(currentCity.width, currentCity.height);
-      const markColumns = Math.ceil(Math.sqrt(maxValue));
-      mark.style.gridArea = `${Math.floor((value - 1) / markColumns) + 1} / ${(value - 1) % markColumns + 1}`;
-      building.appendChild(mark);
+    } else if (!hasMark && value) {
       marks[row][column].add(value);
     }
   } else if (!markMode) {
     buildings[row][column] = value;
-    valueContainer.textContent = value || '';
   }
   valueContainer.blur();
-  checkForErrors();
+  renderState();
   updateHistory();
+}
+
+/**
+ * Updates or creates a cell mark
+ * @param {number} mark
+ * @param {HTMLSpanElement} wrapper
+ * @returns {HTMLSpanElement}
+ */
+function setupMark(mark, wrapper = document.createElement('span')) {
+  wrapper.className = 'mark';
+  wrapper.dataset.value = mark;
+  const maxValue = Math.max(currentCity.width, currentCity.height);
+  const markColumns = Math.ceil(Math.sqrt(maxValue));
+  wrapper.style.gridArea = `${Math.floor((mark - 1) / markColumns) + 1} / ${(mark - 1) % markColumns + 1}`;
+  return wrapper;
 }
 
 function checkForErrors() {
@@ -241,10 +294,10 @@ function updateStatus() {
 }
 
 function updateHistory() {
-  const state = serializeState();
+  const state = btoa(serializeState());
   const lastState = history[history.length - 1];
   if (state !== lastState) {
-    history.push(btoa(state));
+    history.push(state);
     localStorage.setItem(btoa(serializeCity()), JSON.stringify(history));
   }
 }
@@ -443,6 +496,7 @@ function deserializeCity(serialized) {
   }
   return city;
 }
+window.deserializeCity = deserializeCity;
 
 /**
  * Returns a string representing the current state
@@ -508,10 +562,18 @@ function deserializeState(serialized, width, height) {
   };
   return state;
 }
+window.deserializeState = deserializeState;
 
 async function main() {
-  const cities = await loadCities();
-  initializeCity(cities[0]);
+  const lastCityId = localStorage['.lastCity'];
+  if (lastCityId) {
+    const city = deserializeCity(atob(lastCityId));
+    history = localStorage[lastCityId] ? JSON.parse(localStorage[lastCityId]) : [];
+    initializeCity(city);
+  } else {
+    const cities = await loadCities();
+    initializeCity(cities[0]);
+  }
 }
 
 main();
