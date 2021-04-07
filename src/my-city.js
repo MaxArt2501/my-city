@@ -95,52 +95,65 @@ function initializeCity(cityData) {
 }
 
 function renderState() {
+  const maxValue = Math.max(currentCity.width, currentCity.height);
+  const markColumns = Math.ceil(Math.sqrt(maxValue));
+
   currentCity.borderHints.forEach((hints, index) => {
     const wrapper = borderWrappers[index];
-    const lessBorderCells = wrapper.children.length < hints.length
-    while (wrapper.children.length !== hints.length) {
-      if (lessBorderCells) {
-        createCell(wrapper);
-      } else {
-        wrapper.lastChild.remove();
-      }
-    }
-    hints.forEach((hint, index) => {
-      wrapper.children[index].firstChild.textContent = hint || '';
-    });
+    renderForList(hints, wrapper.children, createCell.bind(null, wrapper), (cell, hint) => (cell.firstChild.textContent = hint || ''));
   });
 
-  const cellAmount = currentCity.width * currentCity.height;
-  const lessCityCells = cityWrapper.children.length < cellAmount;
-  while (cityWrapper.children.length !== cellAmount) {
-    if (lessCityCells) {
-      createCell(cityWrapper);
-    } else {
-      cityWrapper.lastChild.remove();
-    }
-  }
-  buildings.forEach((data, row) => {
-    data.forEach((_, column) => {
-      const cell = cityWrapper.children[row * currentCity.width + column];
-      cell.firstChild.textContent = buildings[row][column] || '';
+  renderForList(buildings.flat(), cityWrapper.children, createCell.bind(null, cityWrapper), (cell, value, index) => {
+    cell.firstChild.textContent = value || '';
 
-      const cellMarks = marks[row][column];
-      const markWrappers = cell.querySelectorAll('.mark');
-      Array.from(cellMarks).forEach((mark, index) => {
-        const wrapper = markWrappers[index];
-        if (wrapper) {
-          setupMark(mark, wrapper);
-        } else {
-          cell.appendChild(setupMark(mark));
-        }
-      });
-      for (let index = markWrappers.length - 1; index >= cellMarks.size; index--) {
-        markWrappers[index].remove();
+    const column = index % currentCity.width;
+    const row = (index - column) / currentCity.height;
+    renderForList(
+      Array.from(marks[row][column]),
+      cell.querySelectorAll('.mark'),
+      () => {
+        const wrapper = document.createElement('span');
+        wrapper.className = 'mark';
+        return cell.appendChild(wrapper);
+      },
+      (wrapper, mark) => {
+        wrapper.dataset.value = mark;
+        wrapper.style.gridArea = `${Math.floor((mark - 1) / markColumns) + 1} / ${(mark - 1) % markColumns + 1}`;
       }
-    });
+    );
   });
 
   checkForErrors();
+}
+
+/**
+ * Should create an element for an item of data, and attach it to the DOM tree
+ * @callback ElementFactory
+ * @param {number} index
+ * @returns {HTMLElement}
+ */
+/**
+ * @callback ElementUpdater
+ * @param {HTMLElement} element
+ * @param {*} dataItem
+ * @param {number} index
+ */
+
+/**
+ * Renders a data array, creating new elements when needed and removing
+ * @param {Array} dataList
+ * @param {ArrayLike<HTMLElement>} existingElements
+ * @param {ElementFactory} elementFactory
+ * @param {ElementUpdater} elementUpdater
+ */
+function renderForList(dataList, existingElements, elementFactory, elementUpdater) {
+  dataList.forEach((dataItem, index) => {
+    const element = index >= existingElements.length ? elementFactory(index) : existingElements[index];
+    elementUpdater(element, dataItem, index);
+  });
+  for (let index = existingElements.length - 1; index >= dataList; index--) {
+    existingElements[index].remove();
+  }
 }
 
 /**
@@ -231,20 +244,8 @@ function updateCellValue(valueContainer, value) {
 }
 
 /**
- * Updates or creates a cell mark
- * @param {number} mark
- * @param {HTMLSpanElement} wrapper
- * @returns {HTMLSpanElement}
+ * Computes the errors in the field and eventually renders them
  */
-function setupMark(mark, wrapper = document.createElement('span')) {
-  wrapper.className = 'mark';
-  wrapper.dataset.value = mark;
-  const maxValue = Math.max(currentCity.width, currentCity.height);
-  const markColumns = Math.ceil(Math.sqrt(maxValue));
-  wrapper.style.gridArea = `${Math.floor((mark - 1) / markColumns) + 1} / ${(mark - 1) % markColumns + 1}`;
-  return wrapper;
-}
-
 function checkForErrors() {
   const fieldErrors = getFieldErrors();
   fillErrors('.city > .cell', fieldErrors);
@@ -263,27 +264,27 @@ function checkForErrors() {
 function fillErrors(selector, errors) {
   field.querySelectorAll(selector).forEach((cell, index) => {
     const cellErrors = errors.filter(error => error.index === index);
-    cell.classList.toggle('error', cellErrors.length > 0);
     cell.dataset.errors = JSON.stringify(cellErrors);
-    if (cellErrors.length > 0) {
-      const errorWrapper = document.createElement('div');
-      errorWrapper.setAttribute('role', 'tooltip');
-      errorWrapper.className = 'errors';
-      if (cellErrors.length > 1) {
-        const list = document.createElement('ul');
-        for (const error of cellErrors) {
-          const item = document.createElement('li');
-          item.textContent = error.message;
-          list.appendChild(item);
-        }
-        errorWrapper.appendChild(list);
-      } else {
-        errorWrapper.textContent = cellErrors[0].message;
+    cell.classList.toggle('error', cellErrors.length > 0);
+    renderForList(
+      cellErrors.length > 0 ? [cellErrors] : [],
+      cell.querySelectorAll('.errors'),
+      () => {
+        const errorWrapper = document.createElement('div');
+        errorWrapper.setAttribute('role', 'tooltip');
+        errorWrapper.className = 'errors';
+        errorWrapper.innerHTML = '<ul></ul>';
+        return cell.appendChild(errorWrapper);
+      },
+      (errorWrapper, errors) => {
+        renderForList(
+          errors,
+          errorWrapper.querySelectorAll('li'),
+          () => errorWrapper.appendChild(document.createElement('li')),
+          (item, error) => (item.textContent = error)
+        );
       }
-      cell.appendChild(errorWrapper);
-    } else {
-      cell.querySelector('.errors')?.remove();
-    }
+    );
   });
 }
 
