@@ -22,12 +22,15 @@
   inherits: true;
 }
 
-*, ::before, ::after {
+*,
+::before,
+::after {
   box-sizing: border-box;
 }
 
 :root {
-  font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+    sans-serif;
 }
 
 body {
@@ -90,9 +93,9 @@ section {
 .city > .cell:hover {
   background-color: khaki;
 }
-.value[contenteditable="true"] {
+.value[contenteditable='true'] {
   border-color: lightcoral;
-  box-shadow: 0 0 0 calc(var(--cell-size) / 15)  lightcoral;
+  box-shadow: 0 0 0 calc(var(--cell-size) / 15) lightcoral;
   position: relative;
 }
 
@@ -122,4 +125,11 @@ section {
   background: red;
   color: white;
   margin-block-start: -0.5em;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #222;
+    filter: invert(1);
+  }
 }
