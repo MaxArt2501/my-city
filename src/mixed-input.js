@@ -1,3 +1,4 @@
+// @ts-check
 import { currentCity, field, toggleMode, updateCellValue } from './game.js';
 
 export function initialize() {
@@ -18,6 +19,7 @@ export function terminate() {
  * @param {MouseEvent} event
  */
 function clickHandler({ target }) {
+  /** @type {HTMLSpanElement} */
   const valueContainer = target.closest('.city .value');
   if (valueContainer) {
     handleClick(valueContainer);
@@ -35,20 +37,21 @@ function keypressHandler({ key }) {
 
 /**
  * Handles the click on a building cell
- * @param {HTMLDivElement} valueContainer
+ * @param {HTMLSpanElement} valueContainer
  */
 function handleClick(valueContainer) {
+  /** @type {HTMLSpanElement?} */
   const editableContainer = field.querySelector('.value[contenteditable=true]');
   if (editableContainer && valueContainer !== editableContainer) {
-    editableContainer.contentEditable = false;
+    editableContainer.contentEditable = 'false';
   }
-  valueContainer.contentEditable = true;
+  valueContainer.contentEditable = 'true';
   valueContainer.focus();
   valueContainer.addEventListener('keydown', handleInput);
   valueContainer.addEventListener(
     'blur',
     () => {
-      valueContainer.contentEditable = false;
+      valueContainer.contentEditable = 'false';
       valueContainer.removeEventListener('keydown', handleInput);
     },
     { once: true }
@@ -59,9 +62,8 @@ function handleClick(valueContainer) {
  * @param {KeyboardEvent} event
  */
 function handleInput(event) {
-  /** @type {HTMLDivElement} */
   const valueContainer = event.target;
-  if (isFinite(event.key) && event.key !== '0' && +event.key <= Math.max(currentCity.width, currentCity.height)) {
+  if (isFinite(+event.key) && event.key !== '0' && +event.key <= Math.max(currentCity.width, currentCity.height)) {
     updateCellValue(valueContainer, +event.key);
     valueContainer.blur();
   } else if (event.key === 'Delete' || event.key === 'Backspace') {

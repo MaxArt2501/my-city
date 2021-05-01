@@ -1,3 +1,4 @@
+// @ts-check
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
 
 /** @type {number[][]} */
@@ -18,9 +19,12 @@ export let markMode = false;
 export let history;
 
 export const field = document.querySelector('section');
+
+/** @type {HTMLDivElement} */
 const cityWrapper = field.querySelector('.city');
 const output = document.querySelector('p');
 const borderNames = ['top', 'right', 'bottom', 'left'];
+/** @type {HTMLElement[]} */
 const borderWrappers = borderNames.map(name => field.querySelector(`.${name}.hints`));
 
 /**
@@ -35,11 +39,11 @@ export function initializeCity(cityData, cityHistory) {
   const maxValue = Math.max(cityData.width, cityData.height);
   const markColumns = Math.ceil(Math.sqrt(maxValue));
   const markRows = Math.ceil(maxValue / markColumns);
-  field.style.setProperty('--mark-grid-cols', markColumns);
-  field.style.setProperty('--mark-grid-rows', markRows);
+  field.style.setProperty('--mark-grid-cols', String(markColumns));
+  field.style.setProperty('--mark-grid-rows', String(markRows));
 
-  cityWrapper.style.setProperty('--city-width', cityData.width);
-  cityWrapper.style.setProperty('--city-height', cityData.height);
+  cityWrapper.style.setProperty('--city-width', String(cityData.width));
+  cityWrapper.style.setProperty('--city-height', String(cityData.height));
 
   history = cityHistory;
   if (history && history.length > 0) {
@@ -86,17 +90,14 @@ function renderState() {
 
 /**
  * Renders a data array, creating new elements when needed and removing
- * @param {Array} dataList
- * @param {ArrayLike<HTMLElement>} existingElements
- * @param {ElementFactory} elementFactory
- * @param {ElementUpdater} elementUpdater
+ * @type {ListRenderer}
  */
 function renderForList(dataList, existingElements, elementFactory, elementUpdater) {
   dataList.forEach((dataItem, index) => {
     const element = index >= existingElements.length ? elementFactory(index) : existingElements[index];
     elementUpdater(element, dataItem, index);
   });
-  for (let index = existingElements.length - 1; index >= dataList; index--) {
+  for (let index = existingElements.length - 1; index >= dataList.length; index--) {
     existingElements[index].remove();
   }
 }
@@ -176,7 +177,9 @@ function checkForErrors() {
  * @param {GameError[]} errors Errors to be applied to the cells
  */
 function fillErrors(selector, errors) {
-  field.querySelectorAll(selector).forEach((cell, index) => {
+  /** @type {NodeListOf<HTMLSpanElement>} */
+  const cells = field.querySelectorAll(selector);
+  cells.forEach((cell, index) => {
     const cellErrors = errors.filter(error => error.index === index);
     cell.dataset.errors = JSON.stringify(cellErrors);
     cell.classList.toggle('error', cellErrors.length > 0);

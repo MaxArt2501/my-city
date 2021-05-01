@@ -1,39 +1,4 @@
-/**
- * @typedef {object} City
- * @property {number} width
- * @property {number} height
- * @property {number[][]} borderHints
- */
-/**
- * @typedef {object} GameError
- * @property {string} type
- * @property {string} message
- * @property {number} index
- */
-/**
- * @typedef {object} StairsRanges
- * @property {number[]} start
- * @property {number[]} end
- */
-/**
- * @typedef {object} State
- * @property {number[][]} buildings
- * @property {Set<number>[][]} marks
- */
-
-/**
- * Should create an element for an item of data, and attach it to the DOM tree
- * @callback ElementFactory
- * @param {number} index
- * @returns {HTMLElement}
- */
-/**
- * @callback ElementUpdater
- * @param {HTMLElement} element
- * @param {*} dataItem
- * @param {number} index
- */
-
+// @ts-check
 import { initializeCity } from './game.js';
 import { deserializeCity } from './serialize.js';
 
