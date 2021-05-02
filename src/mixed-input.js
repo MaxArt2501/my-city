@@ -4,6 +4,7 @@ import { currentCity, field, toggleMode, updateCellValue } from './game.js';
 export function initialize() {
   field.addEventListener('click', clickHandler);
   document.addEventListener('keypress', keypressHandler);
+  document.body.dataset.inputMode = 'mixed';
 }
 
 export function terminate() {

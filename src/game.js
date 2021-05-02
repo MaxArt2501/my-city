@@ -73,17 +73,22 @@ function renderState() {
     renderForList(
       Array.from(marks[row][column]),
       cell.querySelectorAll('.mark'),
-      () => {
-        const wrapper = document.createElement('span');
-        wrapper.className = 'mark';
-        return cell.appendChild(wrapper);
-      },
+      () => cell.appendChild(Object.assign(document.createElement('span'), { className: 'mark' })),
       (wrapper, mark) => {
         wrapper.dataset.value = mark;
         wrapper.style.gridArea = `${Math.floor((mark - 1) / markColumns) + 1} / ${((mark - 1) % markColumns) + 1}`;
       }
     );
   });
+
+  /** @type {HTMLElement} */
+  const selectorWrapper = document.querySelector('.selectors');
+  renderForList(
+    Array.from({ length: maxValue }, (_, index) => index + 1),
+    selectorWrapper.children,
+    () => selectorWrapper.appendChild(Object.assign(document.createElement('button'), { type: 'button' })),
+    (button, value) => (button.textContent = value)
+  );
 
   checkForErrors();
 }
@@ -209,6 +214,7 @@ function updateStatus() {
   const hasGaps = buildings.flat().includes(0);
   const isComplete = !hasGaps && !gameErrors.length;
   output.textContent = isComplete ? 'Completed!' : markMode ? 'Mark mode' : 'Enter mode';
+  document.body.dataset.gameMode = markMode ? 'mark' : 'enter';
 }
 
 function updateHistory() {

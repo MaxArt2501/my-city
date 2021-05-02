@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Serializes a city into an envoded string
  * @param {City} currentCity
