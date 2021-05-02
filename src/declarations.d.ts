@@ -17,6 +17,13 @@ interface State {
   marks: Set<number>[][];
 }
 
+type InputMode = 'mixed' | 'pointer' | 'keyboard';
+interface InputModule {
+  readonly mode: InputMode;
+  initialize(): void;
+  terminate(): void;
+}
+
 interface Document {
   readonly activeElement: HTMLElement | null;
 }

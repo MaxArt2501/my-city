@@ -45,6 +45,7 @@ section {
   line-height: var(--cell-size);
   text-align: center;
   font-size: calc(var(--cell-size) / 2);
+  margin: 1em;
 }
 .hints {
   background-color: #def;
@@ -83,6 +84,7 @@ section {
   width: var(--cell-size);
   height: var(--cell-size);
   border: 1px solid;
+  border-width: max(1px, 0.05em);
   display: grid;
   grid-template-columns: repeat(var(--mark-grid-cols), 1fr);
   grid-template-rows: repeat(var(--mark-grid-rows), 1fr);
@@ -134,14 +136,36 @@ aside {
   margin: 1em;
 }
 
-.mode {
-  display: flex;
-  width: var(--cell-size);
-  height: var(--cell-size);
+aside button {
   border: 1px solid;
+  border-width: max(1px, 0.05em);
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.input,
+.mode {
+  background: gainsboro;
   font-weight: bold;
+}
+[data-input-mode='mixed'] .input::before {
+  content: '⌨\0A\A0\A0\A0🖱';
+  font-size: 80%;
+  white-space: pre;
+  line-height: 0.8em;
+}
+[data-input-mode='pointer'] .input::before {
+  content: '👆';
+}
+[data-input-mode='keyboard'] .input::before {
+  content: '⌨';
 }
 [data-game-mode='mark'] .mode::before {
   content: '1\A0 2\0A 3\A0 4';
@@ -154,18 +178,8 @@ aside {
 
 .selectors {
   display: flex;
-  margin-inline-start: calc(var(--cell-size) / 2);
 }
 .selectors > button {
-  border: 1px solid;
-  border-radius: 50%;
-  padding: 0;
-  text-align: center;
-  width: var(--cell-size);
-  height: var(--cell-size);
-  line-height: var(--cell-size);
-  font-size: inherit;
-  font-weight: inherit;
   background: khaki;
 }
 

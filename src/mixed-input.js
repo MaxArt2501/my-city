@@ -1,10 +1,12 @@
 // @ts-check
 import { currentCity, field, toggleMode, updateCellValue } from './game.js';
 
+/** @type {InputMode} */
+export const mode = 'mixed';
+
 export function initialize() {
   field.addEventListener('click', clickHandler);
   document.addEventListener('keypress', keypressHandler);
-  document.body.dataset.inputMode = 'mixed';
 }
 
 export function terminate() {

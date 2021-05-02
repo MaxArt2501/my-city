@@ -14,11 +14,18 @@ async function loadCities(path = './cities.json') {
 
 /**
  * Loads an input mode
- * @param {string} mode
- * @returns {Promise}
+ * @param {InputMode} mode
+ * @returns {Promise<InputModule>}
  */
-function getInputMode(mode) {
-  return import(`./${mode}-input.js`);
+async function setInputMode(mode) {
+  if (currentInputModule) {
+    currentInputModule.terminate();
+  }
+  /** @type {InputModule} */
+  const inputModule = await import(`./${mode}-input.js`);
+  inputModule.initialize();
+  document.body.dataset.inputMode = 'mixed';
+  return (currentInputModule = inputModule);
 }
 
 async function main() {
@@ -41,8 +48,19 @@ async function main() {
     initializeCity(cities[0], []);
   }
 
-  const inputMode = await import('./mixed-input.js');
-  inputMode.initialize();
+  setInputMode('mixed');
 }
+
+/** @type {InputModule} */
+let currentInputModule;
+
+/** @type {InputMode[]} */
+const inputModes = ['mixed'];
+document.addEventListener('keypress', ({ key }) => {
+  if (key.toLowerCase() === 'i') {
+    const inputModeIndex = inputModes.indexOf(currentInputModule.mode);
+    setInputMode(inputModes[(inputModeIndex + 1) % inputModes.length]);
+  }
+});
 
 main();
