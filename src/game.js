@@ -1,5 +1,6 @@
 // @ts-check
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
+import { createEmptyState, getCoordinates, getStairsRanges, renderForList } from './utils.js';
 
 /** @type {number[][]} */
 export let buildings;
@@ -94,20 +95,6 @@ function renderState() {
 }
 
 /**
- * Renders a data array, creating new elements when needed and removing
- * @type {ListRenderer}
- */
-function renderForList(dataList, existingElements, elementFactory, elementUpdater) {
-  dataList.forEach((dataItem, index) => {
-    const element = index >= existingElements.length ? elementFactory(index) : existingElements[index];
-    elementUpdater(element, dataItem, index);
-  });
-  for (let index = existingElements.length - 1; index >= dataList.length; index--) {
-    existingElements[index].remove();
-  }
-}
-
-/**
  * Creates a cell element and appends it to the given parent
  * @param {HTMLDivElement} parent
  * @returns {HTMLDivElement}
@@ -120,26 +107,12 @@ function createCell(parent) {
 }
 
 /**
- * Returns and empty state for the current city
- * @returns {State}
- */
-function createEmptyState() {
-  return {
-    buildings: Array.from({ length: currentCity.height }, () => Array(currentCity.width).fill(0)),
-    marks: Array.from({ length: currentCity.height }, () => Array.from({ length: currentCity.width }, () => new Set()))
-  };
-}
-
-/**
  * Should create an element for an item of data, and attach it to the DOM tree
  * @param {HTMLSpanElement} valueContainer
  * @param {number} value
  */
 export function updateCellValue(valueContainer, value) {
-  const building = valueContainer.parentElement;
-  const cellIndex = Array.from(building.parentElement.children).indexOf(building);
-  const column = cellIndex % currentCity.width;
-  const row = Math.floor(cellIndex / currentCity.width);
+  const [row, column] = getCoordinates(valueContainer.parentElement);
   if (markMode && value) {
     const hasMark = marks[row][column].has(value);
     if (hasMark) {
@@ -317,58 +290,4 @@ function getBorderErrors() {
     }
   }
   return errors;
-}
-
-/**
- * @param {number[]} sequence
- * @returns {StairsRanges}
- */
-function getStairsRanges(sequence) {
-  const availableHeights = Array.from({ length: sequence.length }, (_, index) => index + 1).filter(height => !sequence.includes(height));
-  if (availableHeights.length > 0) {
-    const ascendingFilled = fillSequence(sequence, availableHeights);
-    const maxStart = getStairsLength(ascendingFilled);
-    const minEnd = getStairsLength(ascendingFilled.slice().reverse());
-    const descendingFilled = fillSequence(sequence, availableHeights.slice().reverse());
-    const maxEnd = getStairsLength(descendingFilled.slice().reverse());
-    const minStart = getStairsLength(descendingFilled);
-    return {
-      start: [minStart, maxStart],
-      end: [minEnd, maxEnd]
-    };
-  }
-  const startLength = getStairsLength(sequence);
-  const endLength = getStairsLength(sequence.slice().reverse());
-  return {
-    start: [startLength, startLength],
-    end: [endLength, endLength]
-  };
-}
-
-/**
- * @param {number[]} sequence
- * @returns {number}
- */
-function getStairsLength(sequence) {
-  let count = 0;
-  let previous = 0;
-  for (const height of sequence) {
-    if (height > previous) {
-      previous = height;
-      count++;
-    }
-  }
-  return count;
-}
-
-/**
- * Replaces the 0s in the sequence with the filler numbers given as the second
- * parameter.
- * @param {number[]} sequence
- * @param {number[]} fillers
- * @returns {number[]}
- */
-function fillSequence(sequence, fillers) {
-  let fillerIndex = 0;
-  return sequence.map(height => height || fillers[fillerIndex++]);
 }

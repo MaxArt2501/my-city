@@ -1,17 +1,15 @@
 // @ts-check
-import { currentCity, field, toggleMode, updateCellValue } from './game.js';
+import { currentCity, field, updateCellValue } from './game.js';
 
 /** @type {InputMode} */
 export const mode = 'mixed';
 
 export function initialize() {
   field.addEventListener('click', clickHandler);
-  document.addEventListener('keypress', keypressHandler);
 }
 
 export function terminate() {
   field.removeEventListener('click', clickHandler);
-  document.removeEventListener('keypress', keypressHandler);
   const { activeElement } = document;
   if (activeElement?.matches('.value[contenteditable=true]')) {
     activeElement?.blur();
@@ -26,15 +24,6 @@ function clickHandler({ target }) {
   const valueContainer = target.closest('.city .value');
   if (valueContainer) {
     handleClick(valueContainer);
-  }
-}
-
-/**
- * @param {KeyboardEvent} event
- */
-function keypressHandler({ key }) {
-  if (key.toLowerCase() === 'm') {
-    toggleMode();
   }
 }
 

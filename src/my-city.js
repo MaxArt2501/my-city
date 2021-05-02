@@ -1,5 +1,5 @@
 // @ts-check
-import { initializeCity } from './game.js';
+import { initializeCity, toggleMode } from './game.js';
 import { deserializeCity } from './serialize.js';
 
 /**
@@ -24,7 +24,7 @@ async function setInputMode(mode) {
   /** @type {InputModule} */
   const inputModule = await import(`./${mode}-input.js`);
   inputModule.initialize();
-  document.body.dataset.inputMode = 'mixed';
+  document.body.dataset.inputMode = mode;
   return (currentInputModule = inputModule);
 }
 
@@ -55,12 +55,20 @@ async function main() {
 let currentInputModule;
 
 /** @type {InputMode[]} */
-const inputModes = ['mixed'];
+const inputModes = ['mixed', 'pointer'];
 document.addEventListener('keypress', ({ key }) => {
   if (key.toLowerCase() === 'i') {
-    const inputModeIndex = inputModes.indexOf(currentInputModule.mode);
-    setInputMode(inputModes[(inputModeIndex + 1) % inputModes.length]);
+    switchInputMode();
+  } else if (key.toLowerCase() === 'm') {
+    toggleMode();
   }
 });
+document.querySelector('button.input').addEventListener('click', switchInputMode);
+document.querySelector('button.mode').addEventListener('click', () => toggleMode());
+
+function switchInputMode() {
+  const inputModeIndex = inputModes.indexOf(currentInputModule.mode);
+  setInputMode(inputModes[(inputModeIndex + 1) % inputModes.length]);
+}
 
 main();

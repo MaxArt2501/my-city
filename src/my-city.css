@@ -183,6 +183,11 @@ aside button {
   background: khaki;
 }
 
+[data-input-mode='pointer'] [aria-current='true'] {
+  background: white;
+  border-width: 0.1em;
+}
+
 /* @media (prefers-color-scheme: dark) {
   body {
     background-color: #222;
