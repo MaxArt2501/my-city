@@ -35,7 +35,9 @@
 
 body {
   margin: 0;
-  --cell-size: 5vmin;
+  background-color: teal;
+  color: #222;
+  --cell-size: 8vmin;
 }
 
 section {
@@ -48,8 +50,9 @@ section {
   margin: 1em;
 }
 .hints {
-  background-color: #def;
+  background-color: lightblue;
   display: flex;
+  box-shadow: 0 0 0 max(1px, 0.05em) black;
 }
 .top {
   grid-area: 1 / 2 / 2 / 3;

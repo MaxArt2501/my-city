@@ -186,7 +186,7 @@ function fillErrors(selector, errors) {
 function updateStatus() {
   const hasGaps = buildings.flat().includes(0);
   const isComplete = !hasGaps && !gameErrors.length;
-  output.textContent = isComplete ? 'Completed!' : markMode ? 'Mark mode' : 'Enter mode';
+  output.textContent = isComplete ? 'Completed!' : '';
   document.body.dataset.gameMode = markMode ? 'mark' : 'enter';
 }
 
