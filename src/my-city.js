@@ -55,7 +55,7 @@ async function main() {
 let currentInputModule;
 
 /** @type {InputMode[]} */
-const inputModes = ['mixed', 'pointer'];
+const inputModes = ['mixed', 'pointer', 'keyboard'];
 document.addEventListener('keypress', ({ key }) => {
   if (key.toLowerCase() === 'i') {
     switchInputMode();

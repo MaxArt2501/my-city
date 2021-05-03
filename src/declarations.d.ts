@@ -50,3 +50,7 @@ type ListRenderer = <T>(
   elementFactory: ElementFactory,
   elementUpdater: ElementUpdater<T>
 ) => void;
+
+type DirectionArrow = 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft';
+
+type ArrowGuard = (key: string) => key is DirectionArrow;

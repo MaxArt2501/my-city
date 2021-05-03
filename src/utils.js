@@ -109,3 +109,12 @@ function fillSequence(sequence, fillers) {
   let fillerIndex = 0;
   return sequence.map(height => height || fillers[fillerIndex++]);
 }
+
+/**
+ * Shifts a value by a given amount, wrapping around the maximum given value
+ * @param {number} value
+ * @param {number} shift
+ * @param {number} max
+ * @returns
+ */
+export const shiftValue = (value, shift, max) => (value + max + shift) % max;

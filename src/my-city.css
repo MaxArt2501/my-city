@@ -92,18 +92,11 @@ section {
 .error {
   color: red;
 }
-.city > .cell:hover {
-  background-color: khaki;
-}
-.value[contenteditable='true'] {
-  border-color: lightcoral;
-  box-shadow: 0 0 0 calc(var(--cell-size) / 15) lightcoral;
-  position: relative;
-}
 
 .value {
   grid-area: 1 / 1 / span var(--mark-grid-rows) / span var(--mark-grid-cols);
 }
+
 .mark {
   display: none;
   pointer-events: none;
@@ -155,18 +148,6 @@ aside button {
   background: gainsboro;
   font-weight: bold;
 }
-[data-input-mode='mixed'] .input::before {
-  content: '⌨\0A\A0\A0\A0🖱';
-  font-size: 80%;
-  white-space: pre;
-  line-height: 0.8em;
-}
-[data-input-mode='pointer'] .input::before {
-  content: '👆';
-}
-[data-input-mode='keyboard'] .input::before {
-  content: '⌨';
-}
 [data-game-mode='mark'] .mode::before {
   content: '1\A0 2\0A 3\A0 4';
   font-size: 60%;
@@ -183,9 +164,37 @@ aside button {
   background: khaki;
 }
 
-[data-input-mode='pointer'] [aria-current='true'] {
-  background: white;
-  border-width: 0.1em;
+/* Input-mode specific styles */
+
+/* Mixed mode */
+[data-input-mode='mixed'] .input::before {
+  content: '⌨\0A\A0\A0\A0🖱';
+  font-size: 80%;
+  white-space: pre;
+  line-height: 0.8em;
+}
+
+/* Pointer mode */
+[data-input-mode='pointer'] .input::before {
+  content: '👆';
+}
+
+/* Keyboard mode */
+[data-input-mode='keyboard'] .input::before {
+  content: '⌨';
+}
+
+[data-input-mode='keyboard'] .value[aria-current='true'],
+[data-input-mode='mixed'] .value[contenteditable='true'] {
+  border-color: lightcoral;
+  box-shadow: 0 0 0 calc(var(--cell-size) / 15) lightcoral;
+  position: relative;
+}
+
+@media (any-hover: hover) {
+  .city > .cell:hover {
+    background-color: khaki;
+  }
 }
 
 /* @media (prefers-color-scheme: dark) {
