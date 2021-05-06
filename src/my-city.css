@@ -45,7 +45,6 @@ header {
   background-color: deepskyblue;
   box-shadow: 0 0 .5rem #0006;
   padding: 0 1rem;
-  margin-bottom: calc(var(--cell-size) / 2);
   height: 4rem;
   display: flex;
   justify-content: space-between;
@@ -79,7 +78,7 @@ section {
   line-height: var(--cell-size);
   text-align: center;
   font-size: calc(var(--cell-size) / 2);
-  margin: 1em;
+  margin: 2em 0;
 }
 .hints {
   background-color: lightblue;
@@ -161,7 +160,6 @@ aside {
   font-size: calc(var(--cell-size) / 2);
   display: flex;
   justify-content: center;
-  margin: 1em;
 }
 
 aside button {
