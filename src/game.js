@@ -1,4 +1,5 @@
 // @ts-check
+import { buttons } from './my-city.js';
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
 import { createEmptyState, getCoordinates, getStairsRanges, renderForList } from './utils.js';
 
@@ -18,6 +19,13 @@ export let markMode = false;
 
 /** @type {string[]} */
 export let history;
+
+/**
+ * Tells how many moves we're behind in the current history with relation to
+ * the last move.
+ * Gets reset to 0 every time the history is updated.
+ */
+let historyPointer = 0;
 
 export const field = document.querySelector('section');
 
@@ -92,6 +100,8 @@ function renderState() {
   );
 
   checkForErrors();
+  buttons.undo.disabled = historyPointer >= history.length - 1;
+  buttons.redo.disabled = historyPointer === 0;
 }
 
 /**
@@ -123,8 +133,8 @@ export function updateCellValue(valueContainer, value) {
   } else if (!markMode) {
     buildings[row][column] = value;
   }
-  renderState();
   updateHistory();
+  renderState();
 }
 
 /**
@@ -194,9 +204,20 @@ function updateHistory() {
   const state = btoa(serializeState(currentCity, buildings, marks));
   const lastState = history[history.length - 1];
   if (state !== lastState) {
-    history.push(state);
+    history = [...history.slice(0, history.length - historyPointer), state];
     localStorage.setItem(btoa(serializeCity(currentCity)), JSON.stringify(history));
+    historyPointer = 0;
   }
+}
+
+/**
+ * Travels the current history, if possible. Pass -1 for undo the last move
+ * @param {number} shift
+ */
+export function travelHistory(shift) {
+  historyPointer = Math.max(0, Math.min(historyPointer + shift, history.length - 1));
+  ({ buildings, marks } = deserializeState(atob(history[history.length - historyPointer - 1]), currentCity.width, currentCity.height));
+  renderState();
 }
 
 /**

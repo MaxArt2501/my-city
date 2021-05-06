@@ -37,7 +37,39 @@ body {
   margin: 0;
   background-color: teal;
   color: #222;
-  --cell-size: 8vmin;
+  display: grid;
+  --cell-size: 9vmin;
+}
+
+header {
+  background-color: deepskyblue;
+  box-shadow: 0 0 .5rem #0006;
+  padding: 0 1rem;
+  margin-bottom: calc(var(--cell-size) / 2);
+  height: 4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+h1 {
+  margin: 0;
+}
+header button {
+  background: none;
+  border: none;
+  padding: .5rem;
+  color: inherit;
+  cursor: pointer;
+}
+header button:disabled {
+  /* This should produce a sufficient contrast ratio */
+  opacity: .575;
+  cursor: not-allowed;
+}
+header svg {
+  block-size: 2.5rem;
+  inline-size: 2.5rem;
+  fill: currentColor;
 }
 
 section {
