@@ -68,7 +68,7 @@ document.addEventListener('keypress', ({ key }) => {
  * @type {Object.<string, HTMLButtonElement>}
  */
 export const buttons = {
-  inputMode: document.querySelector('button.input'),
+  inputMode: document.querySelector('#inputMode'),
   gameMode: document.querySelector('button.mode'),
   undo: document.querySelector('#undo'),
   redo: document.querySelector('#redo'),

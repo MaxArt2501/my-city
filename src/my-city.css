@@ -66,9 +66,16 @@ header button:disabled {
   cursor: not-allowed;
 }
 header svg {
+  display: block;
   block-size: 2.5rem;
   inline-size: 2.5rem;
   fill: currentColor;
+}
+
+[data-input-mode="mixed"] [data-icon]:not([data-icon="keyboard-mouse"]),
+[data-input-mode="pointer"] [data-icon]:not([data-icon="finger"]),
+[data-input-mode="keyboard"] [data-icon]:not([data-icon="keyboard"]) {
+  display: none;
 }
 
 section {
@@ -192,6 +199,7 @@ aside button {
 
 .selectors {
   display: flex;
+  margin-inline-start: 1em;
 }
 .selectors > button {
   background: khaki;
@@ -200,22 +208,10 @@ aside button {
 /* Input-mode specific styles */
 
 /* Mixed mode */
-[data-input-mode='mixed'] .input::before {
-  content: '⌨\0A\A0\A0\A0🖱';
-  font-size: 80%;
-  white-space: pre;
-  line-height: 0.8em;
-}
 
 /* Pointer mode */
-[data-input-mode='pointer'] .input::before {
-  content: '👆';
-}
 
 /* Keyboard mode */
-[data-input-mode='keyboard'] .input::before {
-  content: '⌨';
-}
 
 [data-input-mode='keyboard'] .value[aria-current='true'],
 [data-input-mode='mixed'] .value[contenteditable='true'] {
