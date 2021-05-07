@@ -30,11 +30,11 @@ let historyPointer = 0;
 export const field = document.querySelector('section');
 
 /** @type {HTMLDivElement} */
-const cityWrapper = field.querySelector('.city');
 const output = document.querySelector('p');
 const borderNames = ['top', 'right', 'bottom', 'left'];
-/** @type {HTMLElement[]} */
-const borderWrappers = borderNames.map(name => field.querySelector(`.${name}.hints`));
+
+/** @type {HTMLTemplateElement} */
+const template = document.querySelector('#fieldTemplate');
 
 /**
  * Renders a city
@@ -45,15 +45,6 @@ export function initializeCity(cityData, cityHistory) {
   currentCity = cityData;
   localStorage['.lastCity'] = btoa(serializeCity(cityData));
 
-  const maxValue = Math.max(cityData.width, cityData.height);
-  const markColumns = Math.ceil(Math.sqrt(maxValue));
-  const markRows = Math.ceil(maxValue / markColumns);
-  field.style.setProperty('--mark-grid-cols', String(markColumns));
-  field.style.setProperty('--mark-grid-rows', String(markRows));
-
-  cityWrapper.style.setProperty('--city-width', String(cityData.width));
-  cityWrapper.style.setProperty('--city-height', String(cityData.height));
-
   history = cityHistory;
   if (history && history.length > 0) {
     ({ buildings, marks } = deserializeState(atob(history[history.length - 1]), cityData.width, cityData.height));
@@ -62,17 +53,46 @@ export function initializeCity(cityData, cityHistory) {
     history = [];
     updateHistory();
   }
+  renderCity(field, cityData);
   renderState();
+}
+
+/**
+ * Renders the game field according to the city data
+ * @param {HTMLElement} gameField
+ * @param {City} cityData
+ */
+export function renderCity(gameField, cityData) {
+  const structure = template.content.cloneNode(true);
+
+  cityData.borderHints.forEach((hints, index) => {
+    /** @type {HTMLDivElement} */
+    const wrapper = structure.querySelector(`.${borderNames[index]}.hints`);
+    renderForList(hints, wrapper.children, createCell.bind(null, wrapper), (cell, hint) => (cell.firstChild.textContent = hint || ''));
+  });
+
+  /** @type {HTMLDivElement} */
+  const cityWrapper = structure.querySelector('.city');
+  cityWrapper.style.setProperty('--city-width', String(cityData.width));
+  cityWrapper.style.setProperty('--city-height', String(cityData.height));
+
+  renderForList(Array(cityData.width * cityData.height), [], createCell.bind(null, cityWrapper), () => {});
+
+  const maxValue = Math.max(cityData.width, cityData.height);
+  const markColumns = Math.ceil(Math.sqrt(maxValue));
+  const markRows = Math.ceil(maxValue / markColumns);
+  gameField.style.setProperty('--mark-grid-cols', String(markColumns));
+  gameField.style.setProperty('--mark-grid-rows', String(markRows));
+
+  gameField.innerHTML = '';
+  gameField.appendChild(structure);
 }
 
 function renderState() {
   const maxValue = Math.max(currentCity.width, currentCity.height);
   const markColumns = Math.ceil(Math.sqrt(maxValue));
-
-  currentCity.borderHints.forEach((hints, index) => {
-    const wrapper = borderWrappers[index];
-    renderForList(hints, wrapper.children, createCell.bind(null, wrapper), (cell, hint) => (cell.firstChild.textContent = hint || ''));
-  });
+  /** @type {HTMLDivElement} */
+  const cityWrapper = field.querySelector('.city');
 
   renderForList(buildings.flat(), cityWrapper.children, createCell.bind(null, cityWrapper), (cell, value, index) => {
     cell.firstChild.textContent = value || '';

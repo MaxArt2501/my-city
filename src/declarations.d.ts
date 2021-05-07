@@ -27,6 +27,9 @@ interface InputModule {
 interface Document {
   readonly activeElement: HTMLElement | null;
 }
+interface DocumentFragment {
+  cloneNode(deep?: boolean): DocumentFragment;
+}
 interface HTMLElement {
   readonly children: HTMLCollectionOf<HTMLElement>;
 }
