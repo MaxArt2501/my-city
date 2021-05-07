@@ -121,3 +121,22 @@ export function deserializeState(serialized, width, height) {
   };
   return state;
 }
+
+/**
+ * Encodes an UTF-8 string into base-64 (btoa works with Latin-1). Also removes
+ * the = padding at the end.
+ * @param {string} string
+ * @returns {string}
+ */
+export function utf8ToBase64(string) {
+  return btoa(unescape(encodeURIComponent(string))).replace(/=/g, '');
+}
+
+/**
+ * Decodes an UTF-8 string from base-64 (atob works with Latin-1)
+ * @param {string} string
+ * @returns {string}
+ */
+export function base64ToUtf8(string) {
+  return decodeURIComponent(escape(window.atob(string)));
+}

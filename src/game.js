@@ -1,6 +1,6 @@
 // @ts-check
 import { buttons } from './my-city.js';
-import { deserializeState, serializeCity, serializeState } from './serialize.js';
+import { base64ToUtf8, deserializeState, serializeCity, serializeState, utf8ToBase64 } from './serialize.js';
 import { createEmptyState, getCoordinates, getStairsRanges, renderForList } from './utils.js';
 
 /** @type {number[][]} */
@@ -43,11 +43,11 @@ const template = document.querySelector('#fieldTemplate');
  */
 export function initializeCity(cityData, cityHistory) {
   currentCity = cityData;
-  localStorage['.lastCity'] = btoa(serializeCity(cityData));
+  localStorage['.lastCity'] = utf8ToBase64(serializeCity(cityData));
 
   history = cityHistory;
   if (history && history.length > 0) {
-    ({ buildings, marks } = deserializeState(atob(history[history.length - 1]), cityData.width, cityData.height));
+    ({ buildings, marks } = deserializeState(base64ToUtf8(history[history.length - 1]), cityData.width, cityData.height));
   } else {
     ({ buildings, marks } = createEmptyState());
     history = [];
@@ -221,11 +221,11 @@ function updateStatus() {
 }
 
 function updateHistory() {
-  const state = btoa(serializeState(currentCity, buildings, marks));
+  const state = utf8ToBase64(serializeState(currentCity, buildings, marks));
   const lastState = history[history.length - 1];
   if (state !== lastState) {
     history = [...history.slice(0, history.length - historyPointer), state];
-    localStorage.setItem(btoa(serializeCity(currentCity)), JSON.stringify(history));
+    localStorage.setItem(utf8ToBase64(serializeCity(currentCity)), JSON.stringify(history));
     historyPointer = 0;
   }
 }
@@ -236,7 +236,11 @@ function updateHistory() {
  */
 export function travelHistory(shift) {
   historyPointer = Math.max(0, Math.min(historyPointer + shift, history.length - 1));
-  ({ buildings, marks } = deserializeState(atob(history[history.length - historyPointer - 1]), currentCity.width, currentCity.height));
+  ({ buildings, marks } = deserializeState(
+    base64ToUtf8(history[history.length - historyPointer - 1]),
+    currentCity.width,
+    currentCity.height
+  ));
   renderState();
 }
 

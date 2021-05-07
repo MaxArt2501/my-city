@@ -1,6 +1,6 @@
 // @ts-check
 import { initializeCity, toggleMode, travelHistory } from './game.js';
-import { deserializeCity } from './serialize.js';
+import { base64ToUtf8, deserializeCity } from './serialize.js';
 
 /**
  * Load a JSON file of cities
@@ -31,7 +31,7 @@ async function setInputMode(mode) {
 async function main() {
   const lastCityId = localStorage['.lastCity'];
   if (lastCityId) {
-    const city = deserializeCity(atob(lastCityId));
+    const city = deserializeCity(base64ToUtf8(lastCityId));
     /** @type {string[]} */
     let history = [];
     if (localStorage[lastCityId]) {
@@ -71,8 +71,8 @@ export const buttons = {
   inputMode: document.querySelector('#inputMode'),
   gameMode: document.querySelector('button.mode'),
   undo: document.querySelector('#undo'),
-  redo: document.querySelector('#redo'),
-}
+  redo: document.querySelector('#redo')
+};
 buttons.inputMode.addEventListener('click', switchInputMode);
 buttons.gameMode.addEventListener('click', () => toggleMode());
 buttons.undo.addEventListener('click', () => travelHistory(1));
