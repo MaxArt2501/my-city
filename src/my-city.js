@@ -1,6 +1,6 @@
 // @ts-check
-import { initializeCity, toggleMode, travelHistory } from './game.js';
-import { base64ToUtf8, deserializeCity } from './serialize.js';
+import { initializeCity, renderCity, toggleMode, travelHistory } from './game.js';
+import { base64ToUtf8, deserializeCity, serializeCity, utf8ToBase64 } from './serialize.js';
 
 /**
  * Load a JSON file of cities
@@ -28,26 +28,63 @@ async function setInputMode(mode) {
   return (currentInputModule = inputModule);
 }
 
-async function main() {
-  const lastCityId = localStorage['.lastCity'];
-  if (lastCityId) {
-    const city = deserializeCity(base64ToUtf8(lastCityId));
-    /** @type {string[]} */
-    let history = [];
-    if (localStorage[lastCityId]) {
-      try {
-        history = JSON.parse(localStorage[lastCityId]);
-      } catch (error) {
-        console.error(`Found invalid history for city with ID '${lastCityId}'`);
-        console.error(error);
-      }
+/**
+ * Loads the history of a game, given the ID of the city
+ * @param {string} cityId
+ * @returns {string[]}
+ */
+function loadHistory(cityId) {
+  if (localStorage[cityId]) {
+    try {
+      return JSON.parse(localStorage[cityId]);
+    } catch (error) {
+      console.error(`Found invalid history for city with ID '${cityId}'`);
+      console.error(error);
     }
-    initializeCity(city, history);
-  } else {
-    const cities = await loadCities();
-    initializeCity(cities[0], []);
   }
+  return [];
+}
 
+/** @type {HTMLUListElement} */
+const cityList = document.querySelector('nav ul');
+/** @type {HTMLTemplateElement} */
+const template = document.querySelector('#cityTemplate');
+
+function checkLocationHash() {
+  const hash = location.hash.slice(1).replace(/=/g, '');
+  if (hash) {
+    try {
+      const city = deserializeCity(base64ToUtf8(hash));
+      initializeCity(city, loadHistory(hash));
+      document.body.dataset.currentCity = hash;
+      cityList.textContent = '';
+      return;
+    } catch {
+      console.error('Invalid city ID');
+      location.href = '#';
+    }
+  }
+  document.body.dataset.currentCity = '';
+  showCityList();
+}
+
+async function showCityList() {
+  const cities = await loadCities();
+  const list = document.createDocumentFragment();
+  for (const city of cities) {
+    const item = template.content.cloneNode(true);
+    item.querySelector('span').textContent = `${city.width}×${city.height}`;
+    const time = item.querySelector('time');
+    time.textContent = '--:--';
+    renderCity(item.querySelector('section'), city);
+    item.querySelector('a').href = `#${utf8ToBase64(serializeCity(city))}`;
+    list.appendChild(item);
+  }
+  cityList.appendChild(list);
+}
+
+function main() {
+  checkLocationHash();
   setInputMode('mixed');
 }
 
@@ -63,6 +100,8 @@ document.addEventListener('keypress', ({ key }) => {
     toggleMode();
   }
 });
+
+window.addEventListener('hashchange', checkLocationHash);
 
 /**
  * @type {Object.<string, HTMLButtonElement>}

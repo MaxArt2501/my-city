@@ -48,6 +48,12 @@ body {
   font-size: calc(var(--cell-size) / 1.5);
 }
 
+[data-current-city=''] nav ~ *,
+body:not([data-current-city]) nav ~ *,
+[data-current-city]:not([data-current-city='']) nav {
+  display: none;
+}
+
 header {
   background-color: deepskyblue;
   box-shadow: 0 0 0.5rem #0006;
@@ -88,6 +94,36 @@ header svg {
 [data-input-mode='pointer'] [data-icon]:not([data-icon='finger']),
 [data-input-mode='keyboard'] [data-icon]:not([data-icon='keyboard']) {
   display: none;
+}
+
+ul {
+  display: grid;
+  grid-gap: 1vmin;
+  grid-template-columns: 1fr 1fr;
+  list-style: none;
+  margin: 0.5em 0;
+  padding: 0;
+  --cell-size: 4.5vmin;
+}
+ul li {
+  display: flex;
+}
+ul li:hover {
+  background-color: #fff3;
+}
+ul a {
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  box-shadow: 0 0 0.1em;
+}
+ul a > div {
+  color: white;
+  font-size: 66.67%;
+  padding-inline: 0.5em;
+}
+ul section {
+  pointer-events: none;
 }
 
 section {
@@ -259,6 +295,8 @@ aside button {
   }
   header div[role='toolbar'] {
     width: min-content;
+    display: flex;
+    flex-direction: column;
   }
 
   h1 {
@@ -266,7 +304,15 @@ aside button {
     transform: rotate(180deg);
   }
 
-  section {
+  nav {
+    flex-grow: 1;
+  }
+  ul {
+    margin: 0 0.5em;
+    grid-template-columns: repeat(auto-fit, 49.5vmin);
+  }
+
+  body > section {
     margin: auto 1em auto auto;
   }
 

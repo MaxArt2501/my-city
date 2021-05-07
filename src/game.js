@@ -76,7 +76,7 @@ export function renderCity(gameField, cityData) {
   cityWrapper.style.setProperty('--city-width', String(cityData.width));
   cityWrapper.style.setProperty('--city-height', String(cityData.height));
 
-  renderForList(Array(cityData.width * cityData.height), [], createCell.bind(null, cityWrapper), () => {});
+  renderForList(Array(cityData.width * cityData.height).fill(0), [], createCell.bind(null, cityWrapper), () => {});
 
   const maxValue = Math.max(cityData.width, cityData.height);
   const markColumns = Math.ceil(Math.sqrt(maxValue));
@@ -84,7 +84,7 @@ export function renderCity(gameField, cityData) {
   gameField.style.setProperty('--mark-grid-cols', String(markColumns));
   gameField.style.setProperty('--mark-grid-rows', String(markRows));
 
-  gameField.innerHTML = '';
+  gameField.textContent = '';
   gameField.appendChild(structure);
 }
 
