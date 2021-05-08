@@ -3,6 +3,7 @@ import { buttons } from './my-city.js';
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
 import {
   createEmptyState,
+  formatElapsed,
   getAttemptElapsed,
   getCoordinates,
   getStairsRanges,
@@ -41,7 +42,12 @@ let currentAttempt;
 /** @type {number} */
 let attemptStart;
 
+/** @type {number} */
+let clockInterval;
+
 export const field = document.querySelector('section');
+/** @type {HTMLTimeElement} */
+export const elapsedTime = document.querySelector('#elapsed');
 
 /** @type {HTMLDivElement} */
 const output = document.querySelector('p');
@@ -54,17 +60,20 @@ const template = document.querySelector('#fieldTemplate');
  * Renders a city
  * @param {City} cityData
  * @param {CityHistory} theHistory
- * @param {string} [attempt]
  */
-export function initializeCity(cityData, theHistory, attempt) {
-  currentAttempt = attempt || `${new Date().toISOString()} PT0`;
+export function initializeCity(cityData, theHistory) {
+  const { history, attempts } = theHistory;
+  currentAttempt = attempts[attempts.length - 1] || `${new Date().toISOString()} PT0`;
   attemptStart = Date.now();
 
   currentCity = cityData;
   localStorage['.lastCity'] = serializeCity(cityData);
 
+  if (!isAttemptSuccessful(currentAttempt)) {
+    startClock();
+  }
+
   cityHistory = theHistory;
-  const { history } = theHistory;
   if (history && history.length > 0) {
     ({ buildings, marks } = deserializeState(history[history.length - 1], cityData.width, cityData.height));
   } else {
@@ -74,6 +83,20 @@ export function initializeCity(cityData, theHistory, attempt) {
   }
   renderCity(field, cityData);
   renderState();
+}
+
+function startClock() {
+  clockInterval = setInterval(() => {
+    const elapsed = getAttemptElapsed(currentAttempt) + Date.now() - attemptStart;
+    elapsedTime.textContent = formatElapsed(elapsed);
+    elapsedTime.dateTime = toISODuration(elapsed);
+  }, 1000);
+}
+
+export function stopClock() {
+  elapsedTime.textContent = '';
+  elapsedTime.dateTime = '';
+  clearInterval(clockInterval);
 }
 
 /**

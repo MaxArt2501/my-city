@@ -1,7 +1,7 @@
 // @ts-check
-import { initializeCity, renderCity, toggleMode, travelHistory } from './game.js';
+import { initializeCity, renderCity, stopClock, toggleMode, travelHistory } from './game.js';
 import { deserializeCity, serializeCity } from './serialize.js';
-import { formatElapsed, getAttemptElapsed, isAttemptSuccessful } from './utils.js';
+import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
 
 /**
  * Load a JSON file of cities
@@ -60,12 +60,13 @@ function checkLocationHash() {
       document.body.dataset.currentCity = hash;
       cityList.textContent = '';
       return;
-    } catch {
+    } catch (e) {
       console.error('Invalid city ID');
       location.href = '#';
     }
   }
   document.body.dataset.currentCity = '';
+  stopClock();
   showCityList();
 }
 
@@ -83,14 +84,17 @@ async function showCityList() {
     const lastAttempt = attempts[attempts.length - 1];
     if (!lastAttempt) {
       time.textContent = '--:--';
+      time.dateTime = '';
     } else if (isAttemptSuccessful(lastAttempt)) {
       // The last attempt has been successful - look for the best time
       const best = Math.min(...attempts.filter(isAttemptSuccessful).map(getAttemptElapsed));
       time.textContent = formatElapsed(best);
+      time.dateTime = toISODuration(best);
     } else {
       const current = getAttemptElapsed(lastAttempt);
       time.classList.add('current');
-      time.textContent = formatElapsed(getAttemptElapsed(lastAttempt));
+      time.textContent = formatElapsed(current);
+      time.dateTime = toISODuration(current);
     }
 
     renderCity(item.querySelector('section'), city);
