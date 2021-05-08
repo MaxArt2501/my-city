@@ -225,7 +225,7 @@ function updateHistory() {
   const lastState = history[history.length - 1];
   if (state !== lastState) {
     history = [...history.slice(0, history.length - historyPointer), state];
-    localStorage.setItem(serializeCity(currentCity), JSON.stringify(history));
+    localStorage.setItem(serializeCity(currentCity), JSON.stringify({ history, attempts: [] }));
     historyPointer = 0;
   }
 }
