@@ -1,6 +1,7 @@
 // @ts-check
 import { initializeCity, renderCity, toggleMode, travelHistory } from './game.js';
 import { deserializeCity, serializeCity } from './serialize.js';
+import { formatElapsed, getAttemptElapsed, isAttemptSuccessful } from './utils.js';
 
 /**
  * Load a JSON file of cities
@@ -55,7 +56,7 @@ function checkLocationHash() {
   if (hash) {
     try {
       const city = deserializeCity(hash);
-      initializeCity(city, loadHistory(hash).history);
+      initializeCity(city, loadHistory(hash));
       document.body.dataset.currentCity = hash;
       cityList.textContent = '';
       return;
@@ -74,8 +75,24 @@ async function showCityList() {
   for (const city of cities) {
     const item = template.content.cloneNode(true);
     item.querySelector('span').textContent = `${city.width}×${city.height}`;
+
     const time = item.querySelector('time');
-    time.textContent = '--:--';
+    const cityId = serializeCity(city);
+    const { attempts } = loadHistory(cityId);
+    attempts.sort();
+    const lastAttempt = attempts[attempts.length - 1];
+    if (!lastAttempt) {
+      time.textContent = '--:--';
+    } else if (isAttemptSuccessful(lastAttempt)) {
+      // The last attempt has been successful - look for the best time
+      const best = Math.min(...attempts.filter(isAttemptSuccessful).map(getAttemptElapsed));
+      time.textContent = formatElapsed(best);
+    } else {
+      const current = getAttemptElapsed(lastAttempt);
+      time.classList.add('current');
+      time.textContent = formatElapsed(getAttemptElapsed(lastAttempt));
+    }
+
     renderCity(item.querySelector('section'), city);
     item.querySelector('a').href = `#${serializeCity(city)}`;
     list.appendChild(item);

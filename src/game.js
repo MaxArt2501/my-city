@@ -1,7 +1,15 @@
 // @ts-check
 import { buttons } from './my-city.js';
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
-import { createEmptyState, getCoordinates, getStairsRanges, renderForList } from './utils.js';
+import {
+  createEmptyState,
+  getAttemptElapsed,
+  getCoordinates,
+  getStairsRanges,
+  isAttemptSuccessful,
+  renderForList,
+  toISODuration
+} from './utils.js';
 
 /** @type {number[][]} */
 export let buildings;
@@ -17,8 +25,8 @@ export let gameErrors;
 
 export let markMode = false;
 
-/** @type {string[]} */
-export let history;
+/** @type {CityHistory} */
+let cityHistory;
 
 /**
  * Tells how many moves we're behind in the current history with relation to
@@ -26,6 +34,12 @@ export let history;
  * Gets reset to 0 every time the history is updated.
  */
 let historyPointer = 0;
+
+/** @type {string} */
+let currentAttempt;
+
+/** @type {number} */
+let attemptStart;
 
 export const field = document.querySelector('section');
 
@@ -39,18 +53,23 @@ const template = document.querySelector('#fieldTemplate');
 /**
  * Renders a city
  * @param {City} cityData
- * @param {string[]} cityHistory
+ * @param {CityHistory} theHistory
+ * @param {string} [attempt]
  */
-export function initializeCity(cityData, cityHistory) {
+export function initializeCity(cityData, theHistory, attempt) {
+  currentAttempt = attempt || `${new Date().toISOString()} PT0`;
+  attemptStart = Date.now();
+
   currentCity = cityData;
   localStorage['.lastCity'] = serializeCity(cityData);
 
-  history = cityHistory;
+  cityHistory = theHistory;
+  const { history } = theHistory;
   if (history && history.length > 0) {
     ({ buildings, marks } = deserializeState(history[history.length - 1], cityData.width, cityData.height));
   } else {
     ({ buildings, marks } = createEmptyState());
-    history = [];
+    cityHistory = { history: [], attempts: [currentAttempt] };
     updateHistory();
   }
   renderCity(field, cityData);
@@ -120,7 +139,7 @@ function renderState() {
   );
 
   checkForErrors();
-  buttons.undo.disabled = historyPointer >= history.length - 1;
+  buttons.undo.disabled = historyPointer >= cityHistory.history.length - 1;
   buttons.redo.disabled = historyPointer === 0;
 }
 
@@ -142,6 +161,11 @@ function createCell(parent) {
  * @param {number} value
  */
 export function updateCellValue(valueContainer, value) {
+  if (isAttemptSuccessful(currentAttempt)) {
+    // A successful attempt can't be updated - only navigated through its
+    // history or restarted
+    return;
+  }
   const [row, column] = getCoordinates(valueContainer.parentElement);
   if (markMode && value) {
     const hasMark = marks[row][column].has(value);
@@ -222,12 +246,30 @@ function updateStatus() {
 
 function updateHistory() {
   const state = serializeState(currentCity, buildings, marks);
-  const lastState = history[history.length - 1];
+  const { history } = cityHistory;
+  const lastState = cityHistory[history.length - 1];
   if (state !== lastState) {
-    history = [...history.slice(0, history.length - historyPointer), state];
-    localStorage.setItem(serializeCity(currentCity), JSON.stringify({ history, attempts: [] }));
+    cityHistory = {
+      history: [...history.slice(0, history.length - historyPointer), state],
+      attempts: updateAttempts()
+    };
+    localStorage.setItem(serializeCity(currentCity), JSON.stringify(cityHistory));
     historyPointer = 0;
   }
+}
+
+function updateAttempts() {
+  const [timestamp] = currentAttempt.split(' ', 1);
+  const attemptIndex = cityHistory.attempts.findIndex(attempt => attempt.startsWith(timestamp));
+  if (attemptIndex >= 0) {
+    const elapsed = getAttemptElapsed(cityHistory.attempts[attemptIndex]) + Date.now() - attemptStart;
+    return [
+      ...cityHistory.attempts.slice(0, attemptIndex),
+      `${timestamp} ${toISODuration(elapsed)}`,
+      ...cityHistory.attempts.slice(attemptIndex + 1)
+    ];
+  }
+  return [...cityHistory.attempts, currentAttempt];
 }
 
 /**
@@ -235,6 +277,7 @@ function updateHistory() {
  * @param {number} shift
  */
 export function travelHistory(shift) {
+  const { history } = cityHistory;
   historyPointer = Math.max(0, Math.min(historyPointer + shift, history.length - 1));
   ({ buildings, marks } = deserializeState(history[history.length - historyPointer - 1], currentCity.width, currentCity.height));
   renderState();

@@ -90,6 +90,11 @@ header svg {
   fill: currentColor;
 }
 
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
 [data-input-mode='mixed'] [data-icon]:not([data-icon='keyboard-mouse']),
 [data-input-mode='pointer'] [data-icon]:not([data-icon='finger']),
 [data-input-mode='keyboard'] [data-icon]:not([data-icon='keyboard']) {
@@ -112,8 +117,6 @@ ul li:hover {
   background-color: #fff3;
 }
 ul a {
-  text-decoration: none;
-  color: inherit;
   width: 100%;
   box-shadow: 0 0 0.1em;
 }
@@ -124,6 +127,14 @@ ul a > div {
 }
 ul section {
   pointer-events: none;
+}
+time.current {
+  color: #ec0000;
+  background: white;
+  line-height: 1;
+  display: inline-block;
+  border-radius: 0.35em;
+  padding: 0 0.175em;
 }
 
 section {
