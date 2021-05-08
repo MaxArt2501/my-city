@@ -135,6 +135,10 @@ section {
   font-size: calc(var(--cell-size) / 1.5);
   margin: 1em 0;
 }
+section.completed {
+  /* perspective: 1000px; */
+  transform: rotate3d(1, 0, 0, 60deg) rotate(45deg);
+}
 .hints {
   background-color: lightblue;
   display: flex;

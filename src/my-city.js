@@ -1,6 +1,6 @@
 // @ts-check
 import { initializeCity, renderCity, toggleMode, travelHistory } from './game.js';
-import { base64ToUtf8, deserializeCity, serializeCity, utf8ToBase64 } from './serialize.js';
+import { deserializeCity, serializeCity } from './serialize.js';
 
 /**
  * Load a JSON file of cities
@@ -31,7 +31,7 @@ async function setInputMode(mode) {
 /**
  * Loads the history of a game, given the ID of the city
  * @param {string} cityId
- * @returns {string[]}
+ * @returns {CityHistory}
  */
 function loadHistory(cityId) {
   if (localStorage[cityId]) {
@@ -42,7 +42,7 @@ function loadHistory(cityId) {
       console.error(error);
     }
   }
-  return [];
+  return { history: [], attempts: [] };
 }
 
 /** @type {HTMLUListElement} */
@@ -54,8 +54,8 @@ function checkLocationHash() {
   const hash = location.hash.slice(1).replace(/=/g, '');
   if (hash) {
     try {
-      const city = deserializeCity(base64ToUtf8(hash));
-      initializeCity(city, loadHistory(hash));
+      const city = deserializeCity(hash);
+      initializeCity(city, loadHistory(hash).history);
       document.body.dataset.currentCity = hash;
       cityList.textContent = '';
       return;
@@ -77,7 +77,7 @@ async function showCityList() {
     const time = item.querySelector('time');
     time.textContent = '--:--';
     renderCity(item.querySelector('section'), city);
-    item.querySelector('a').href = `#${utf8ToBase64(serializeCity(city))}`;
+    item.querySelector('a').href = `#${serializeCity(city)}`;
     list.appendChild(item);
   }
   cityList.appendChild(list);

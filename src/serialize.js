@@ -1,142 +1,143 @@
 // @ts-check
+const B64 = Array.from({ length: 64 }, (_, num) => btoa(String.fromCharCode(num << 2))[0]).join('');
+
 /**
- * Serializes a city into an envoded string
- * @param {City} currentCity
+ * Serializes a city into an encoded string - new, more compact representation
+ * @param {City} city
  * @returns {string}
  */
-export function serializeCity(currentCity) {
-  const cityData = new Uint8Array(1 + currentCity.width + currentCity.height);
-  cityData[0] = currentCity.width + (currentCity.height << 4);
+export function serializeCity(city) {
+  const { width, height, borderHints } = city;
 
-  currentCity.borderHints[0].forEach((topHint, index) => {
-    const bottomHint = currentCity.borderHints[2][currentCity.width - index - 1];
-    cityData[index + 1] = topHint + (bottomHint << 4);
-  });
+  const bw = BigInt(width);
+  const bh = BigInt(height);
+  let cityNumber =
+    borderHints.flat().reduce((prod, hint, index) => {
+      const topOrBottom = index % (width + height) < width;
+      return prod * (topOrBottom ? bh : bw) + BigInt(hint);
+    }, 0n) *
+      64n +
+    BigInt(height - 2) * 8n +
+    BigInt(width - 2);
 
-  currentCity.borderHints[1].forEach((rightHint, index) => {
-    const leftHint = currentCity.borderHints[3][currentCity.height - index - 1];
-    cityData[index + 1 + currentCity.width] = leftHint + (rightHint << 4);
-  });
-
-  return new TextDecoder().decode(cityData.buffer);
+  // Bonus: the first 6 bits (= first base64 character ) contain the city
+  // sizes. Very handy!
+  return bigintToBase64(cityNumber);
 }
 
 /**
- * Deserializes a serialized city
- * @param {string} serialized
+ * Deserializes a city serialized with the new representation
+ * @param {string} string
  * @returns {City}
  */
-export function deserializeCity(serialized) {
-  const cityData = new TextEncoder().encode(serialized);
-  const width = cityData[0] & 15;
-  const height = cityData[0] >> 4;
+export function deserializeCity(string) {
+  const sizes = B64.indexOf(string[0]);
+  const width = (sizes & 7) + 2;
+  const height = (sizes >> 3) + 2;
+  const bw = BigInt(width);
+  const bh = BigInt(height);
 
-  /** @type {City} */
-  const city = {
+  let hintsNumber = base64ToBigint(string.slice(1));
+  const allHints = [];
+  for (let index = (width + height) * 2; index > 0; index--) {
+    const leftOrRight = index % (width + height) < height;
+    const modulo = leftOrRight ? bh : bw;
+    allHints.unshift(Number(hintsNumber % modulo));
+    hintsNumber /= modulo;
+  }
+
+  return {
     width,
     height,
-    borderHints: [new Array(width), new Array(height), new Array(width), new Array(height)]
+    borderHints: [
+      allHints.slice(0, width),
+      allHints.slice(width, width + height),
+      allHints.slice(width + height, width * 2 + height),
+      allHints.slice(width * 2 + height)
+    ]
   };
-  for (let index = 0; index < city.width; index++) {
-    const topHint = cityData[index + 1] & 15;
-    const bottomHint = cityData[index + 1] >> 4;
-    city.borderHints[0][index] = topHint;
-    city.borderHints[2][city.width - index - 1] = bottomHint;
-  }
-  for (let index = 0; index < city.height; index++) {
-    const leftHint = cityData[index + city.width + 1] & 15;
-    const rightHint = cityData[index + city.width + 1] >> 4;
-    city.borderHints[1][index] = rightHint;
-    city.borderHints[3][city.height - index - 1] = leftHint;
-  }
-  return city;
 }
 
 /**
- * Returns a string representing the current state
- * @param {City} currentCity
+ *
+ * @param {bigint} bigint
+ */
+function bigintToBase64(bigint) {
+  let encoded = '';
+  let temp = bigint;
+  while (temp > 0n) {
+    encoded += B64[Number(temp % 64n)];
+    temp /= 64n;
+  }
+  return encoded;
+}
+
+/**
+ *
+ * @param {string} string
+ * @returns {bigint}
+ */
+function base64ToBigint(string) {
+  return string.split('').reduceRight((total, char) => total * 64n + BigInt(B64.indexOf(char)), 0n);
+}
+
+/**
+ * Returns a string representing the current state - new, more compact representation
+ * @param {City} city
  * @param {number[][]} buildings
  * @param {Set<number>[][]} marks
  * @returns {string}
  */
-export function serializeState(currentCity, buildings, marks) {
-  const citySize = currentCity.width * currentCity.height;
-  const cityState = new Uint8Array(Math.ceil(citySize * 2.5));
+export function serializeState(city, buildings, marks) {
+  const maxValue = BigInt(Math.max(city.width, city.height));
+  const modulo = 2n ** maxValue * (maxValue + 1n);
 
-  /** @type {number[]} */
-  const allCells = buildings.flat();
-  allCells.forEach((value, index) => {
-    const cityIndex = index >> 1;
-    cityState[cityIndex] = cityState[cityIndex] + (value << (index & 1 ? 4 : 0));
-  });
-
-  const marksData = new Uint16Array(citySize);
-  /** @type {Set<number>[]} */
   const allMarks = marks.flat();
-  allMarks.forEach((cellMarks, index) => {
-    for (const mark of cellMarks) {
-      marksData[index] = marksData[index] ^ (1 << (mark - 1));
-    }
-  });
+  const stateNumber = buildings.flat().reduce((number, building, index) => {
+    const cellMarks = Array.from(allMarks[index]);
+    const marksNumber = cellMarks.reduce((bitmask, mark) => bitmask ^ (1 << (mark - 1)), 0);
+    const cellNumber = BigInt(marksNumber) * (maxValue + 1n) + BigInt(building);
+    return number * modulo + cellNumber;
+  }, 0n);
 
-  cityState.set(new Uint8Array(marksData.buffer), Math.ceil(citySize / 2));
-  return new TextDecoder().decode(cityState.buffer);
+  return bigintToBase64(stateNumber);
 }
 
 /**
- * Returns a deserialized structured game state
+ * Returns a deserialized structured game state - new, more compact representation
  * @param {string} serialized
  * @param {number} width
  * @param {number} height
  * @returns {State}
  */
 export function deserializeState(serialized, width, height) {
-  const stateData = new TextEncoder().encode(serialized);
-  const citySize = width * height;
-  const values = Array.from({ length: citySize }, (_, index) => {
-    const byte = stateData[index >> 1];
-    return index & 1 ? byte >> 4 : byte & 15;
+  let stateNumber = base64ToBigint(serialized);
+  const maxValue = BigInt(Math.max(width, height));
+  const modulo = 2n ** maxValue * (maxValue + 1n);
+
+  const allCells = Array.from({ length: width * height }, () => {
+    const value = stateNumber % modulo;
+    stateNumber /= modulo;
+    return value;
+  }).reverse();
+
+  /** @type {number[][]} */
+  const buildings = Array.from({ length: height }, () => Array(width));
+  /** @type {Set<number>[][]} */
+  const marks = Array.from({ length: height }, () => Array.from({ length: width }, () => new Set()));
+
+  allCells.forEach((cellNumber, index) => {
+    const row = Math.floor(index / width);
+    const column = index % width;
+    buildings[row][column] = Number(cellNumber % (maxValue + 1n));
+    const marksNumber = Number(cellNumber / (maxValue + 1n));
+    const cellMarks = marks[row][column];
+    for (let value = 1; value <= maxValue; value++) {
+      if (marksNumber & (1 << (value - 1))) {
+        cellMarks.add(value);
+      }
+    }
   });
 
-  const markOffset = Math.ceil(citySize / 2);
-  const maxValue = Math.max(width, height);
-  const markData = new Uint16Array(stateData.buffer.slice(markOffset));
-  /** @type {State} */
-  const state = {
-    buildings: Array.from({ length: height }, (_, index) => values.slice(index * width, (index + 1) * width)),
-    marks: Array.from({ length: height }, (_, row) =>
-      Array.from({ length: width }, (_, column) => {
-        /** @type {Set<number>} */
-        const cellMarks = new Set();
-        const index = row * width + column;
-        const markByte = markData[index];
-        for (let value = 1; value <= maxValue; value++) {
-          if (markByte & (1 << (value - 1))) {
-            cellMarks.add(value);
-          }
-        }
-        return cellMarks;
-      })
-    )
-  };
-  return state;
-}
-
-/**
- * Encodes an UTF-8 string into base-64 (btoa works with Latin-1). Also removes
- * the = padding at the end.
- * @param {string} string
- * @returns {string}
- */
-export function utf8ToBase64(string) {
-  return btoa(unescape(encodeURIComponent(string))).replace(/=/g, '');
-}
-
-/**
- * Decodes an UTF-8 string from base-64 (atob works with Latin-1)
- * @param {string} string
- * @returns {string}
- */
-export function base64ToUtf8(string) {
-  return decodeURIComponent(escape(window.atob(string)));
+  return { buildings, marks };
 }

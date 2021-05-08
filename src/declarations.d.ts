@@ -17,6 +17,11 @@ interface State {
   marks: Set<number>[][];
 }
 
+interface CityHistory {
+  history: string[];
+  attempts: string[];
+}
+
 type InputMode = 'mixed' | 'pointer' | 'keyboard';
 interface InputModule {
   readonly mode: InputMode;
