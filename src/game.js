@@ -227,6 +227,11 @@ export function updateCellValue(valueContainer, value) {
   }
   updateHistory();
   renderState();
+  const isComplete = isCityComplete();
+  if (isComplete) {
+    stopClock();
+  }
+  field.classList.toggle('complete', isComplete);
 }
 
 /**
@@ -286,10 +291,13 @@ function fillErrors(selector, errors) {
 }
 
 function updateStatus() {
-  const hasGaps = buildings.flat().includes(0);
-  const isComplete = !hasGaps && !gameErrors.length;
-  output.textContent = isComplete ? 'Completed!' : '';
+  output.textContent = isCityComplete() ? 'Completed!' : '';
   document.body.dataset.gameMode = markMode ? 'mark' : 'enter';
+}
+
+function isCityComplete() {
+  const hasGaps = buildings.flat().includes(0);
+  return !hasGaps && !gameErrors.length;
 }
 
 function updateHistory() {
@@ -311,7 +319,7 @@ function updateAttempts() {
   const now = Date.now();
   const elapsed = getAttemptElapsed(currentAttempt) + now - attemptStart;
   attemptStart = now;
-  currentAttempt = `${timestamp} ${toISODuration(elapsed)}`;
+  currentAttempt = `${timestamp} ${toISODuration(elapsed)}${isCityComplete() ? '*' : ''}`;
   const attemptIndex = cityHistory.attempts.findIndex(attempt => attempt.startsWith(timestamp));
   if (attemptIndex >= 0) {
     return [...cityHistory.attempts.slice(0, attemptIndex), currentAttempt, ...cityHistory.attempts.slice(attemptIndex + 1)];
