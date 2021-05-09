@@ -134,10 +134,18 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+document.addEventListener('click', ({ target }) => {
+  if (target.closest('.close-dialog')) {
+    const dialog = target.closest('dialog');
+    dialog?.close();
+  }
+});
+
 /**
  * @type {Object.<string, HTMLButtonElement>}
  */
 export const buttons = {
+  toggleSidebar: document.querySelector('#toggleSidebar'),
   inputMode: document.querySelector('#inputMode'),
   gameMode: document.querySelector('button.mode'),
   undo: document.querySelector('#undo'),
@@ -147,6 +155,17 @@ buttons.inputMode.addEventListener('click', switchInputMode);
 buttons.gameMode.addEventListener('click', () => toggleMode());
 buttons.undo.addEventListener('click', () => travelHistory(1));
 buttons.redo.addEventListener('click', () => travelHistory(-1));
+
+/** @type {HTMLDialogElement} */
+const sidebar = document.querySelector('#sidebar');
+
+buttons.toggleSidebar.addEventListener('click', () => {
+  if (sidebar.open) {
+    sidebar.close();
+  } else {
+    sidebar.showModal();
+  }
+});
 
 function switchInputMode() {
   const inputModeIndex = inputModes.indexOf(currentInputModule.mode);

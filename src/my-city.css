@@ -51,8 +51,47 @@ body {
 body:not([data-current-city]) nav ~ *,
 body:not([data-current-city]) #undo,
 body:not([data-current-city]) #redo,
+body:not([data-current-city]) .in-game,
+[data-current-city] .in-home,
 [data-current-city] nav {
   display: none;
+}
+
+::backdrop {
+  background: #0006;
+  backdrop-filter: blur(0.25em);
+}
+
+dialog button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-weight: 100;
+  font-size: 1em;
+  color: inherit;
+  display: block;
+  line-height: 1.5;
+  text-align: start;
+}
+
+.close-dialog {
+  position: absolute;
+  top: 0.25em;
+  right: 0.25em;
+}
+.close-dialog > svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
+#sidebar {
+  width: 8em;
+  margin: 0 0 0 auto;
+  max-height: none;
+  border: none;
 }
 
 header {
@@ -78,6 +117,10 @@ header button {
   height: max(44px, 1em);
   padding: max(4.4px, 0.1em);
 }
+header div[role='toolbar'] {
+  display: flex;
+}
+
 header button:disabled {
   /* This should produce a sufficient contrast ratio */
   opacity: 0.575;
@@ -91,9 +134,9 @@ header svg {
   fill: currentColor;
 }
 header time {
-  font-size: 75%;
+  font-size: 80%;
   vertical-align: bottom;
-  font-weight: normal;
+  font-weight: bold;
 }
 
 a {
@@ -315,8 +358,6 @@ aside button {
     flex-direction: column-reverse;
   }
   header div[role='toolbar'] {
-    width: min-content;
-    display: flex;
     flex-direction: column;
   }
 

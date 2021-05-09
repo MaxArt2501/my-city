@@ -1,80 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My City</title>
+    <link rel="stylesheet" href="my-city.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My City</title>
-  <link rel="stylesheet" href="my-city.css" />
-</head>
+  <body>
+    <dialog id="sidebar">
+      <button type="button" class="close-dialog">
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
+        </svg>
+      </button>
 
-<body>
-  <header>
-    <h1><a href="#">My city</a> <time id="elapsed"></time></h1>
-    <div role="toolbar">
-      <button type="button" id="inputMode">
-        <svg aria-hidden="true" viewBox="0 0 32 32" data-icon="keyboard-mouse">
-          <g transform="translate(-2, -8)">
+      <button type="button" class="in-home">How to&hellip;</button>
+      <button type="button" class="in-home">Settings</button>
+      <button type="button" class="in-home">About</button>
+
+      <button type="button" class="in-game">Restart game</button>
+      <button type="button" class="in-game">Hint</button>
+      <button type="button" class="in-game">Fill annotations</button>
+      <button type="button" class="in-game">Solve</button>
+    </dialog>
+    <header>
+      <h1><a href="#">My city</a> <time id="elapsed"></time></h1>
+      <div role="toolbar">
+        <button type="button" id="inputMode">
+          <svg aria-hidden="true" viewBox="0 0 32 32" data-icon="keyboard-mouse">
+            <g transform="translate(-2, -8)">
+              <path d="M28 26H4a2 2 0 01-2-2V10a2 2 0 012-2h24a2 2 0 012 2v14a2 2 0 01-2 2zM4 10v14h24V10z" />
+              <path
+                d="M10 20h11v2H10zM6 12h2v2H6zM10 12h2v2h-2zM14 12h2v2h-2zM18 12h2v2h-2zM6 20h2v2H6zM6 16h2v2H6zM10 16h2v2h-2zM14 16h2v2h-2zM22 12h4v2h-4zM22 16h4v2h-4zM18 16h2v2h-2zM23 20h3v2h-3z"
+              />
+            </g>
+            <path
+              transform="translate(24, 15) scale(0.6) rotate(45)"
+              d="M13 2h-2C7.691 2 5 4.691 5 8v8c0 3.309 2.691 6 6 6h2c3.309 0 6-2.691 6-6V8c0-3.309-2.691-6-6-6zm-2 2v6H7V8c0-2.206 1.794-4 4-4zm6 12c0 2.206-1.794 4-4 4h-2c-2.206 0-4-1.794-4-4v-4h10v4zm-4-6V4c2.206 0 4 1.794 4 4v2h-4z"
+            />
+          </svg>
+          <svg aria-hidden="true" viewBox="0 0 32 32" data-icon="finger">
+            <path
+              d="M13 2c-1.645 0-3 1.355-3 3v11.813l-.656-.688l-.25-.219a2.968 2.968 0 0 0-4.188 0a2.968 2.968 0 0 0 0 4.188v.031l8.188 8.094l.062.031l.031.063a8.307 8.307 0 0 0 5 1.687h1.72a8.17 8.17 0 0 0 8.187-8.188V14c0-1.645-1.356-3-3-3c-.426 0-.82.117-1.188.281C23.578 9.981 22.395 9 21 9c-.766 0-1.469.3-2 .781A2.984 2.984 0 0 0 17 9a2.95 2.95 0 0 0-1 .188V5c0-1.645-1.355-3-3-3zm0 2c.555 0 1 .445 1 1v11h2v-4c0-.555.445-1 1-1c.555 0 1 .445 1 1v4h2v-4c0-.555.445-1 1-1c.555 0 1 .445 1 1v4h2.094v-2c0-.555.445-1 1-1c.554 0 1 .445 1 1v7.813c0 3.464-2.723 6.187-6.188 6.187h-1.718c-1.465 0-2.731-.523-3.782-1.313l-8.094-8c-.445-.445-.445-.93 0-1.375c.446-.445.93-.445 1.375 0L12 21.625V5c0-.555.445-1 1-1z"
+            />
+          </svg>
+          <svg aria-hidden="true" viewBox="0 0 32 32" data-icon="keyboard">
             <path d="M28 26H4a2 2 0 01-2-2V10a2 2 0 012-2h24a2 2 0 012 2v14a2 2 0 01-2 2zM4 10v14h24V10z" />
             <path
-              d="M10 20h11v2H10zM6 12h2v2H6zM10 12h2v2h-2zM14 12h2v2h-2zM18 12h2v2h-2zM6 20h2v2H6zM6 16h2v2H6zM10 16h2v2h-2zM14 16h2v2h-2zM22 12h4v2h-4zM22 16h4v2h-4zM18 16h2v2h-2zM23 20h3v2h-3z" />
-          </g>
-          <path transform="translate(24, 15) scale(0.6) rotate(45)"
-            d="M13 2h-2C7.691 2 5 4.691 5 8v8c0 3.309 2.691 6 6 6h2c3.309 0 6-2.691 6-6V8c0-3.309-2.691-6-6-6zm-2 2v6H7V8c0-2.206 1.794-4 4-4zm6 12c0 2.206-1.794 4-4 4h-2c-2.206 0-4-1.794-4-4v-4h10v4zm-4-6V4c2.206 0 4 1.794 4 4v2h-4z" />
-        </svg>
-        <svg aria-hidden="true" viewBox="0 0 32 32" data-icon="finger">
-          <path
-            d="M13 2c-1.645 0-3 1.355-3 3v11.813l-.656-.688l-.25-.219a2.968 2.968 0 0 0-4.188 0a2.968 2.968 0 0 0 0 4.188v.031l8.188 8.094l.062.031l.031.063a8.307 8.307 0 0 0 5 1.687h1.72a8.17 8.17 0 0 0 8.187-8.188V14c0-1.645-1.356-3-3-3c-.426 0-.82.117-1.188.281C23.578 9.981 22.395 9 21 9c-.766 0-1.469.3-2 .781A2.984 2.984 0 0 0 17 9a2.95 2.95 0 0 0-1 .188V5c0-1.645-1.355-3-3-3zm0 2c.555 0 1 .445 1 1v11h2v-4c0-.555.445-1 1-1c.555 0 1 .445 1 1v4h2v-4c0-.555.445-1 1-1c.555 0 1 .445 1 1v4h2.094v-2c0-.555.445-1 1-1c.554 0 1 .445 1 1v7.813c0 3.464-2.723 6.187-6.188 6.187h-1.718c-1.465 0-2.731-.523-3.782-1.313l-8.094-8c-.445-.445-.445-.93 0-1.375c.446-.445.93-.445 1.375 0L12 21.625V5c0-.555.445-1 1-1z" />
-        </svg>
-        <svg aria-hidden="true" viewBox="0 0 32 32" data-icon="keyboard">
-          <path d="M28 26H4a2 2 0 01-2-2V10a2 2 0 012-2h24a2 2 0 012 2v14a2 2 0 01-2 2zM4 10v14h24V10z" />
-          <path
-            d="M10 20h11v2H10zM6 12h2v2H6zM10 12h2v2h-2zM14 12h2v2h-2zM18 12h2v2h-2zM6 20h2v2H6zM6 16h2v2H6zM10 16h2v2h-2zM14 16h2v2h-2zM22 12h4v2h-4zM22 16h4v2h-4zM18 16h2v2h-2zM23 20h3v2h-3z" />
-        </svg>
-      </button>
-      <button type="button" id="undo">
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <path
-            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
-        </svg>
-      </button>
-      <button type="button" id="redo">
-        <svg aria-hidden="true" viewBox="0 0 24 24">
-          <path
-            d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16a8.002 8.002 0 0 1 7.6-5.5c1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
-        </svg>
-      </button>
-    </div>
-  </header>
-  <nav>
-    <ul></ul>
-  </nav>
-  <section></section>
-  <aside role="toolbar">
-    <button type="button" class="mode"></button>
-    <div class="selectors"></div>
-  </aside>
-  <p></p>
-  <template id="fieldTemplate">
-    <div class="top hints"></div>
-    <div class="right hints"></div>
-    <div class="bottom hints"></div>
-    <div class="left hints"></div>
-    <div class="city"></div>
-  </template>
-  <template id="cityTemplate">
-    <li>
-      <a>
-        <div>
-          <span></span>
-          <time></time>
-        </div>
-        <section></section>
-      </a>
-    </li>
-  </template>
-  <script src="my-city.js" type="module"></script>
-</body>
-
+              d="M10 20h11v2H10zM6 12h2v2H6zM10 12h2v2h-2zM14 12h2v2h-2zM18 12h2v2h-2zM6 20h2v2H6zM6 16h2v2H6zM10 16h2v2h-2zM14 16h2v2h-2zM22 12h4v2h-4zM22 16h4v2h-4zM18 16h2v2h-2zM23 20h3v2h-3z"
+            />
+          </svg>
+        </button>
+        <button type="button" id="undo">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
+          </svg>
+        </button>
+        <button type="button" id="redo">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16a8.002 8.002 0 0 1 7.6-5.5c1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
+          </svg>
+        </button>
+        <button type="button" id="toggleSidebar">
+          <svg aria-hidden="true" viewBox="0 0 16 16">
+            <path d="M9.5 13a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+    <nav>
+      <ul></ul>
+    </nav>
+    <section></section>
+    <aside role="toolbar">
+      <button type="button" class="mode"></button>
+      <div class="selectors"></div>
+    </aside>
+    <p></p>
+    <template id="fieldTemplate">
+      <div class="top hints"></div>
+      <div class="right hints"></div>
+      <div class="bottom hints"></div>
+      <div class="left hints"></div>
+      <div class="city"></div>
+    </template>
+    <template id="cityTemplate">
+      <li>
+        <a>
+          <div>
+            <span></span>
+            <time></time>
+          </div>
+          <section></section>
+        </a>
+      </li>
+    </template>
+    <script src="my-city.js" type="module"></script>
+  </body>
 </html>
