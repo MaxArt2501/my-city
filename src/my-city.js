@@ -1,5 +1,5 @@
 // @ts-check
-import { initializeCity, renderCity, stopClock, toggleMode, travelHistory } from './game.js';
+import { initializeCity, leaveCity, renderCity, startClock, stopClock, toggleMode, travelHistory } from './game.js';
 import { deserializeCity, serializeCity } from './serialize.js';
 import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
 
@@ -66,7 +66,7 @@ function checkLocationHash() {
     }
   }
   document.body.dataset.currentCity = '';
-  stopClock();
+  leaveCity();
   showCityList();
 }
 
@@ -123,6 +123,16 @@ document.addEventListener('keypress', ({ key }) => {
 });
 
 window.addEventListener('hashchange', checkLocationHash);
+
+window.addEventListener('beforeunload', leaveCity);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopClock();
+  } else {
+    startClock();
+  }
+});
 
 /**
  * @type {Object.<string, HTMLButtonElement>}

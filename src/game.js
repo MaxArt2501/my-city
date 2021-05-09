@@ -21,8 +21,11 @@ export let marks;
 /** @type {City} */
 export let currentCity;
 
+/** @type {string} */
+let cityId;
+
 /** @type {GameError[]} */
-export let gameErrors;
+let gameErrors;
 
 export let markMode = false;
 
@@ -47,7 +50,7 @@ let clockInterval;
 
 export const field = document.querySelector('section');
 /** @type {HTMLTimeElement} */
-export const elapsedTime = document.querySelector('#elapsed');
+const elapsedTime = document.querySelector('#elapsed');
 
 /** @type {HTMLDivElement} */
 const output = document.querySelector('p');
@@ -64,14 +67,12 @@ const template = document.querySelector('#fieldTemplate');
 export function initializeCity(cityData, theHistory) {
   const { history, attempts } = theHistory;
   currentAttempt = attempts[attempts.length - 1] || `${new Date().toISOString()} PT0`;
-  attemptStart = Date.now();
 
   currentCity = cityData;
-  localStorage['.lastCity'] = serializeCity(cityData);
+  cityId = serializeCity(cityData);
+  localStorage['.lastCity'] = cityId;
 
-  if (!isAttemptSuccessful(currentAttempt)) {
-    startClock();
-  }
+  startClock();
 
   cityHistory = theHistory;
   if (history && history.length > 0) {
@@ -85,18 +86,42 @@ export function initializeCity(cityData, theHistory) {
   renderState();
 }
 
-function startClock() {
-  clockInterval = setInterval(() => {
-    const elapsed = getAttemptElapsed(currentAttempt) + Date.now() - attemptStart;
-    elapsedTime.textContent = formatElapsed(elapsed);
-    elapsedTime.dateTime = toISODuration(elapsed);
-  }, 1000);
+export function startClock() {
+  if (!currentCity || isAttemptSuccessful(currentAttempt)) {
+    return;
+  }
+  attemptStart = Date.now();
+  clockInterval = setInterval(renderTime, 1000);
+  renderTime();
 }
 
 export function stopClock() {
+  if (cityHistory) {
+    clearInterval(clockInterval);
+    clockInterval = void 0;
+    cityHistory = {
+      ...cityHistory,
+      attempts: updateAttempts()
+    };
+    localStorage[cityId] = JSON.stringify(cityHistory);
+  }
+}
+
+export function leaveCity() {
+  stopClock();
   elapsedTime.textContent = '';
   elapsedTime.dateTime = '';
-  clearInterval(clockInterval);
+  currentCity = void 0;
+  cityId = void 0;
+  buildings = void 0;
+  marks = void 0;
+  cityHistory = void 0;
+}
+
+function renderTime() {
+  const elapsed = getAttemptElapsed(currentAttempt) + Date.now() - attemptStart;
+  elapsedTime.textContent = formatElapsed(elapsed);
+  elapsedTime.dateTime = toISODuration(elapsed);
 }
 
 /**
@@ -276,21 +301,20 @@ function updateHistory() {
       history: [...history.slice(0, history.length - historyPointer), state],
       attempts: updateAttempts()
     };
-    localStorage.setItem(serializeCity(currentCity), JSON.stringify(cityHistory));
+    localStorage.setItem(cityId, JSON.stringify(cityHistory));
     historyPointer = 0;
   }
 }
 
 function updateAttempts() {
   const [timestamp] = currentAttempt.split(' ', 1);
+  const now = Date.now();
+  const elapsed = getAttemptElapsed(currentAttempt) + now - attemptStart;
+  attemptStart = now;
+  currentAttempt = `${timestamp} ${toISODuration(elapsed)}`;
   const attemptIndex = cityHistory.attempts.findIndex(attempt => attempt.startsWith(timestamp));
   if (attemptIndex >= 0) {
-    const elapsed = getAttemptElapsed(cityHistory.attempts[attemptIndex]) + Date.now() - attemptStart;
-    return [
-      ...cityHistory.attempts.slice(0, attemptIndex),
-      `${timestamp} ${toISODuration(elapsed)}`,
-      ...cityHistory.attempts.slice(attemptIndex + 1)
-    ];
+    return [...cityHistory.attempts.slice(0, attemptIndex), currentAttempt, ...cityHistory.attempts.slice(attemptIndex + 1)];
   }
   return [...cityHistory.attempts, currentAttempt];
 }

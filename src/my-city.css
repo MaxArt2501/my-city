@@ -89,6 +89,11 @@ header svg {
   display: block;
   fill: currentColor;
 }
+header time {
+  font-size: 75%;
+  vertical-align: bottom;
+  font-weight: normal;
+}
 
 a {
   text-decoration: none;
@@ -131,10 +136,10 @@ ul section {
 time.current {
   color: #ec0000;
   background: white;
-  line-height: 1;
+  line-height: 0.8;
   display: inline-block;
   border-radius: 0.35em;
-  padding: 0 0.175em;
+  padding: 0 0.175em 0.1em;
 }
 
 section {

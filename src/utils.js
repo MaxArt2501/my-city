@@ -181,5 +181,5 @@ export function formatElapsed(millis) {
  * @returns {boolean}
  */
 export function isAttemptSuccessful(attempt) {
-  return attempt.endsWith('*');
+  return !!attempt && attempt.endsWith('*');
 }
