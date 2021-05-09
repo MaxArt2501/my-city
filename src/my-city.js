@@ -65,7 +65,7 @@ function checkLocationHash() {
       location.href = '#';
     }
   }
-  document.body.dataset.currentCity = '';
+  delete document.body.dataset.currentCity;
   leaveCity();
   showCityList();
 }

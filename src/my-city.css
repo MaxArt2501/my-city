@@ -48,9 +48,10 @@ body {
   font-size: calc(var(--cell-size) / 1.5);
 }
 
-[data-current-city=''] nav ~ *,
 body:not([data-current-city]) nav ~ *,
-[data-current-city]:not([data-current-city='']) nav {
+body:not([data-current-city]) #undo,
+body:not([data-current-city]) #redo,
+[data-current-city] nav {
   display: none;
 }
 
