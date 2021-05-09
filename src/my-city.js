@@ -1,5 +1,15 @@
 // @ts-check
-import { initializeCity, leaveCity, renderCity, startClock, stopClock, toggleMode, travelHistory } from './game.js';
+import {
+  initializeCity,
+  isCityComplete,
+  leaveCity,
+  renderCity,
+  restartGame,
+  startClock,
+  stopClock,
+  toggleMode,
+  travelHistory
+} from './game.js';
 import { deserializeCity, serializeCity } from './serialize.js';
 import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
 
@@ -135,11 +145,57 @@ document.addEventListener('visibilitychange', () => {
 });
 
 document.addEventListener('click', ({ target }) => {
-  if (target.closest('.close-dialog')) {
-    const dialog = target.closest('dialog');
-    dialog?.close();
+  /** @type {HTMLButtonElement} */
+  const actionButton = target.closest('button[data-action]');
+  if (actionButton) {
+    handleAction(actionButton);
   }
 });
+
+document.addEventListener(
+  'close',
+  () => {
+    if (document.body.dataset.currentCity) {
+      const openDialogs = document.querySelectorAll('dialog[open]');
+      if (openDialogs.length === 0) {
+        startClock();
+      }
+    }
+  },
+  { capture: true }
+);
+
+/** @type {Object.<string, HTMLDialogElement>} */
+const dialogs = ['sidebar', 'restartConfirm'].reduce(
+  (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
+  {}
+);
+
+/**
+ * Handles actions from the sidebar menu
+ * @param {HTMLButtonElement} button
+ */
+function handleAction(button) {
+  const action = button.dataset.action;
+  switch (action) {
+    case 'restart':
+      if (isCityComplete()) {
+        restartGame();
+        dialogs.sidebar.close();
+      } else {
+        dialogs.restartConfirm.showModal();
+      }
+      break;
+    case 'confirmRestart':
+      dialogs.restartConfirm.close();
+      dialogs.sidebar.close();
+      restartGame();
+      break;
+    case 'closeDialog':
+      const dialog = button.closest('dialog');
+      dialog?.close();
+  }
+}
 
 /**
  * @type {Object.<string, HTMLButtonElement>}
@@ -164,6 +220,9 @@ buttons.toggleSidebar.addEventListener('click', () => {
     sidebar.close();
   } else {
     sidebar.showModal();
+    if (document.body.dataset.currentCity) {
+      stopClock();
+    }
   }
 });
 

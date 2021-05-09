@@ -52,8 +52,6 @@ export const field = document.querySelector('section');
 /** @type {HTMLTimeElement} */
 const elapsedTime = document.querySelector('#elapsed');
 
-/** @type {HTMLDivElement} */
-const output = document.querySelector('p');
 const borderNames = ['top', 'right', 'bottom', 'left'];
 
 /** @type {HTMLTemplateElement} */
@@ -203,6 +201,23 @@ function createCell(parent) {
   return parent.appendChild(cell);
 }
 
+export function restartGame() {
+  stopClock();
+
+  field.classList.remove('complete');
+  currentAttempt = `${new Date().toISOString()} PT0`;
+  cityHistory = {
+    attempts: updateAttempts(),
+    history: []
+  };
+  localStorage[cityId] = JSON.stringify(cityHistory);
+  ({ buildings, marks } = createEmptyState());
+
+  updateHistory();
+  renderState();
+  startClock();
+}
+
 /**
  * Should create an element for an item of data, and attach it to the DOM tree
  * @param {HTMLSpanElement} valueContainer
@@ -227,11 +242,6 @@ export function updateCellValue(valueContainer, value) {
   }
   updateHistory();
   renderState();
-  const isComplete = isCityComplete();
-  if (isComplete) {
-    stopClock();
-  }
-  field.classList.toggle('complete', isComplete);
 }
 
 /**
@@ -291,11 +301,15 @@ function fillErrors(selector, errors) {
 }
 
 function updateStatus() {
-  output.textContent = isCityComplete() ? 'Completed!' : '';
+  const isComplete = isCityComplete();
+  if (isComplete) {
+    stopClock();
+  }
+  field.classList.toggle('complete', isComplete);
   document.body.dataset.gameMode = markMode ? 'mark' : 'enter';
 }
 
-function isCityComplete() {
+export function isCityComplete() {
   const hasGaps = buildings.flat().includes(0);
   return !hasGaps && !gameErrors.length;
 }

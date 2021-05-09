@@ -22,6 +22,19 @@ interface CityHistory {
   attempts: string[];
 }
 
+type GameAction =
+  | 'help'
+  | 'export'
+  | 'import'
+  | 'settings'
+  | 'about'
+  | 'restart'
+  | 'confirmRestart'
+  | 'hint'
+  | 'fillMarks'
+  | 'solve'
+  | 'closeDialog';
+
 type InputMode = 'mixed' | 'pointer' | 'keyboard';
 interface InputModule {
   readonly mode: InputMode;
