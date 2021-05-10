@@ -94,14 +94,16 @@ export function startClock() {
 }
 
 export function stopClock() {
-  if (cityHistory) {
+  if (clockInterval) {
     clearInterval(clockInterval);
     clockInterval = void 0;
-    cityHistory = {
-      ...cityHistory,
-      attempts: updateAttempts()
-    };
-    localStorage[cityId] = JSON.stringify(cityHistory);
+    if (!isAttemptSuccessful(currentAttempt)) {
+      cityHistory = {
+        ...cityHistory,
+        attempts: updateAttempts()
+      };
+      localStorage[cityId] = JSON.stringify(cityHistory);
+    }
   }
 }
 

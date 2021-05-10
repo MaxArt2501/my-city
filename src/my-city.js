@@ -139,7 +139,7 @@ window.addEventListener('beforeunload', leaveCity);
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     stopClock();
-  } else {
+  } else if (!document.querySelector('dialog[open]')) {
     startClock();
   }
 });
