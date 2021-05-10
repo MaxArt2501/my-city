@@ -57,10 +57,21 @@ body:not([data-current-city]) .in-game,
   display: none;
 }
 
+dialog {
+  border: none;
+  width: 18em;
+  max-width: calc(100% - 2em);
+  font-size: 75%;
+  font-weight: 100;
+}
 ::backdrop {
   background: #0006;
 }
-
+dialog footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5em;
+}
 dialog button {
   border: none;
   background: none;
@@ -74,6 +85,14 @@ dialog button {
   line-height: 1.5;
   text-align: start;
 }
+dialog footer button {
+  background-color: deepskyblue;
+  padding: 0 0.5em 0.1em;
+}
+dialog footer button[data-action='closeDialog'] {
+  background-color: #949494;
+}
+
 dialog[open] ~ section .value,
 dialog[open] ~ section .mark {
   filter: blur(0.25em);
@@ -91,10 +110,9 @@ dialog[open] ~ section .mark {
 }
 
 #sidebar {
-  width: 8em;
+  width: 9em;
   margin: 0 0 0 auto;
   max-height: none;
-  border: none;
 }
 
 header {
@@ -375,6 +393,10 @@ aside button {
   ul {
     margin: 0 0.5em;
     grid-template-columns: repeat(auto-fit, 49.5vmin);
+  }
+
+  #sidebar {
+    margin: 0 auto 0 0;
   }
 
   body > section {
