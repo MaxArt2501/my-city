@@ -18,7 +18,7 @@
       </svg>
     </button>
 
-    <button type="button" class="in-home" data-action="help">How to&hellip;</button>
+    <button type="button" class="in-home" data-action="help">Help</button>
     <button type="button" class="in-home" data-action="export">Export data</button>
     <button type="button" class="in-home" data-action="import">Import data</button>
     <button type="button" class="in-home" data-action="settings">Settings</button>
@@ -37,6 +37,138 @@
       <button type="button" data-action="closeDialog">Cancel</button>
       <button type="button" data-action="confirmRestart">Restart</button>
     </footer>
+  </dialog>
+  <dialog id="help">
+    <button type="button" class="close-dialog" data-action="closeDialog">
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path
+          d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
+      </svg>
+    </button>
+    <h2>How to play with My City</h2>
+    <p>
+      This is my city. While its layout is quite boring - a simple orthogonal grid - it doesn't
+      mean it's not possible to do anything fun with it.
+    </p>
+    <p>
+      You should know that the height of each building can vary from <b>1</b> to
+      <b><i>n</i></b>, where <b><i>n</i></b> is the largest size of the
+      layout grid. For example, in a 4&times;4 city, buildings can be <b>1</b>, <b>2</b>, <b>3</b>,
+      or <b>4</b> stories tall.
+    </p>
+    <p>
+      You should also be aware that in each row, and each column of the grid, there are no buildings
+      with the same height. What I can tell you is how many buildings I can see from the some - but
+      maybe not all! - sides of the grid.
+    </p>
+    <section>
+      <div class="top hints">
+        <div class="cell"><span class="value">3</span></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
+      </div>
+      <div class="right hints">
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"><span class="value">3</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">2</span></div>
+      </div>
+      <div class="bottom hints">
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+      </div>
+      <div class="left hints">
+        <div class="cell"><span class="value">1</span></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
+      </div>
+      <div class="city" style="--city-width:4; --city-height:4;">
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+      </div>
+    </section>
+    <p>
+      Give the hints above, you should know for certain that in the first column of the last row there's
+      a building <b>4</b>-story tall, because from its West side you can see only one building.
+      But you should also know that a <b>4</b>-story tall house is located on the first row and
+      third column, because it's the only place it could be for that row: otherwise one of the other hints
+      from the North would report <b>1</b>.
+    </p>
+    <p>
+      The other <b>4</b>-story building can be similarly placed. Now, if we consider the fourth
+      row, it's also clear that there's a <b>3</b>-story house in the last column, because you
+      can see only <b>2</b> buildings in that row from the East.
+    </p>
+    <section>
+      <div class="top hints">
+        <div class="cell"><span class="value">3</span></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
+      </div>
+      <div class="right hints">
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"><span class="value">3</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">2</span></div>
+      </div>
+      <div class="bottom hints">
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+      </div>
+      <div class="left hints">
+        <div class="cell"><span class="value">1</span></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
+      </div>
+      <div class="city" style="--city-width:4; --city-height:4;">
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">4</span></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">4</span></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">4</span></div>
+        <div class="cell"><span class="value">4</span></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
+      </div>
+    </section>
+    <p>
+      &hellip; You've probably got the point.
+      So, how tall are the buildings of my city?
+    </p>
+    <h2>Commands</h2>
+    <p>
+      Use the keyboard or your mouse depending on the selected input mode 😬
+    </p>
   </dialog>
   <header>
     <h1><a href="#">My city</a> <time id="elapsed" class="in-game"></time></h1>
@@ -84,7 +216,7 @@
   <nav class="in-home">
     <ul></ul>
   </nav>
-  <section class="in-game"></section>
+  <section id="gameField" class="in-game"></section>
   <aside role="toolbar" class="in-game">
     <button type="button" data-action="toggleGameMode"></button>
     <div class="selectors"></div>

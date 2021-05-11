@@ -47,7 +47,8 @@ let attemptStart;
 /** @type {number} */
 let clockInterval;
 
-export const field = document.querySelector('section');
+/** @type {HTMLElement} */
+export const field = document.querySelector('#gameField');
 /** @type {HTMLTimeElement} */
 const elapsedTime = document.querySelector('#elapsed');
 

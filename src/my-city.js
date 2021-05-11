@@ -166,7 +166,7 @@ document.addEventListener(
 );
 
 /** @type {Object.<string, HTMLDialogElement>} */
-const dialogs = ['sidebar', 'restartConfirm'].reduce(
+const dialogs = ['sidebar', 'restartConfirm', 'help'].reduce(
   (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
   {}
 );
@@ -178,6 +178,9 @@ const dialogs = ['sidebar', 'restartConfirm'].reduce(
 function handleAction(button) {
   const action = button.dataset.action;
   switch (action) {
+    case 'help':
+      dialogs.help.showModal();
+      break;
     case 'restart':
       if (isCityComplete()) {
         restartGame();
