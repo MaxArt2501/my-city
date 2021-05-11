@@ -191,40 +191,33 @@ function handleAction(button) {
       dialogs.sidebar.close();
       restartGame();
       break;
+    case 'undo':
+      travelHistory(1);
+      break;
+    case 'redo':
+      travelHistory(-1);
+      break;
+    case 'switchInputMode':
+      switchInputMode();
+      break;
+    case 'toggleGameMode':
+      toggleMode();
+      break;
+    case 'toggleSidebar':
+      if (dialogs.sidebar.open) {
+        dialogs.sidebar.close();
+      } else {
+        dialogs.sidebar.showModal();
+        if (document.body.dataset.currentCity) {
+          stopClock();
+        }
+      }
+      break;
     case 'closeDialog':
       const dialog = button.closest('dialog');
       dialog?.close();
   }
 }
-
-/**
- * @type {Object.<string, HTMLButtonElement>}
- */
-export const buttons = {
-  toggleSidebar: document.querySelector('#toggleSidebar'),
-  inputMode: document.querySelector('#inputMode'),
-  gameMode: document.querySelector('button.mode'),
-  undo: document.querySelector('#undo'),
-  redo: document.querySelector('#redo')
-};
-buttons.inputMode.addEventListener('click', switchInputMode);
-buttons.gameMode.addEventListener('click', () => toggleMode());
-buttons.undo.addEventListener('click', () => travelHistory(1));
-buttons.redo.addEventListener('click', () => travelHistory(-1));
-
-/** @type {HTMLDialogElement} */
-const sidebar = document.querySelector('#sidebar');
-
-buttons.toggleSidebar.addEventListener('click', () => {
-  if (sidebar.open) {
-    sidebar.close();
-  } else {
-    sidebar.showModal();
-    if (document.body.dataset.currentCity) {
-      stopClock();
-    }
-  }
-});
 
 function switchInputMode() {
   const inputModeIndex = inputModes.indexOf(currentInputModule.mode);

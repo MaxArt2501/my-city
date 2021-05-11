@@ -29,10 +29,15 @@ type GameAction =
   | 'settings'
   | 'about'
   | 'restart'
+  | 'undo'
+  | 'redo'
   | 'confirmRestart'
   | 'hint'
   | 'fillMarks'
   | 'solve'
+  | 'switchInputMode'
+  | 'toggleGameMode'
+  | 'toggleSidebar'
   | 'closeDialog';
 
 type InputMode = 'mixed' | 'pointer' | 'keyboard';

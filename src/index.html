@@ -39,9 +39,9 @@
     </footer>
   </dialog>
   <header>
-    <h1><a href="#">My city</a> <time id="elapsed"></time></h1>
+    <h1><a href="#">My city</a> <time id="elapsed" class="in-game"></time></h1>
     <div role="toolbar">
-      <button type="button" id="inputMode">
+      <button type="button" data-action="switchInputMode">
         <svg aria-hidden="true" viewBox="0 0 32 32" data-icon="keyboard-mouse">
           <g transform="translate(-2, -8)">
             <path d="M28 26H4a2 2 0 01-2-2V10a2 2 0 012-2h24a2 2 0 012 2v14a2 2 0 01-2 2zM4 10v14h24V10z" />
@@ -61,19 +61,19 @@
             d="M10 20h11v2H10zM6 12h2v2H6zM10 12h2v2h-2zM14 12h2v2h-2zM18 12h2v2h-2zM6 20h2v2H6zM6 16h2v2H6zM10 16h2v2h-2zM14 16h2v2h-2zM22 12h4v2h-4zM22 16h4v2h-4zM18 16h2v2h-2zM23 20h3v2h-3z" />
         </svg>
       </button>
-      <button type="button" id="undo">
+      <button type="button" data-action="undo" class="in-game">
         <svg aria-hidden="true" viewBox="0 0 24 24">
           <path
             d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
         </svg>
       </button>
-      <button type="button" id="redo">
+      <button type="button" data-action="redo" class="in-game">
         <svg aria-hidden="true" viewBox="0 0 24 24">
           <path
             d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16a8.002 8.002 0 0 1 7.6-5.5c1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
         </svg>
       </button>
-      <button type="button" id="toggleSidebar">
+      <button type="button" data-action="toggleSidebar">
         <svg aria-hidden="true" viewBox="0 0 16 16">
           <path
             d="M9.5 13a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
@@ -81,15 +81,14 @@
       </button>
     </div>
   </header>
-  <nav>
+  <nav class="in-home">
     <ul></ul>
   </nav>
-  <section></section>
-  <aside role="toolbar">
-    <button type="button" class="mode"></button>
+  <section class="in-game"></section>
+  <aside role="toolbar" class="in-game">
+    <button type="button" data-action="toggleGameMode"></button>
     <div class="selectors"></div>
   </aside>
-  <p></p>
   <template id="fieldTemplate">
     <div class="top hints"></div>
     <div class="right hints"></div>

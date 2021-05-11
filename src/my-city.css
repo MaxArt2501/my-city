@@ -48,12 +48,8 @@ body {
   font-size: calc(var(--cell-size) / 1.5);
 }
 
-body:not([data-current-city]) nav ~ *,
-body:not([data-current-city]) #undo,
-body:not([data-current-city]) #redo,
 body:not([data-current-city]) .in-game,
-[data-current-city] .in-home,
-[data-current-city] nav {
+[data-current-city] .in-home {
   display: none;
 }
 
@@ -314,17 +310,16 @@ aside button {
   font-weight: inherit;
 }
 
-.input,
-.mode {
+[data-action='toggleGameMode'] {
   background: gainsboro;
   font-weight: bold;
 }
-[data-game-mode='mark'] .mode::before {
+[data-game-mode='mark'] [data-action='toggleGameMode']::before {
   content: '1\A0 2\0A 3\A0 4';
   font-size: 60%;
   white-space: pre;
 }
-[data-game-mode='enter'] .mode::before {
+[data-game-mode='enter'] [data-action='toggleGameMode']::before {
   content: '#';
 }
 
@@ -379,7 +374,10 @@ aside button {
     flex-direction: column-reverse;
   }
   header div[role='toolbar'] {
-    flex-direction: column;
+    flex-direction: column-reverse;
+  }
+  [data-action='toggleSidebar'] {
+    transform: rotate(90deg);
   }
 
   h1 {

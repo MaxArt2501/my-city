@@ -1,5 +1,4 @@
 // @ts-check
-import { buttons } from './my-city.js';
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
 import {
   createEmptyState,
@@ -56,6 +55,11 @@ const borderNames = ['top', 'right', 'bottom', 'left'];
 
 /** @type {HTMLTemplateElement} */
 const template = document.querySelector('#fieldTemplate');
+
+/** @type {HTMLButtonElement} */
+const undoBtn = document.querySelector('[data-action="undo"]');
+/** @type {HTMLButtonElement} */
+const redoBtn = document.querySelector('[data-action="redo"]');
 
 /**
  * Renders a city
@@ -187,8 +191,8 @@ function renderState() {
   );
 
   checkForErrors();
-  buttons.undo.disabled = historyPointer >= cityHistory.history.length - 1;
-  buttons.redo.disabled = historyPointer === 0;
+  undoBtn.disabled = historyPointer >= cityHistory.history.length - 1;
+  redoBtn.disabled = historyPointer === 0;
 }
 
 /**
