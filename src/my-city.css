@@ -25,11 +25,24 @@
   syntax: '<number>';
   inherits: true;
 }
+@property --max-size {
+  syntax: '<number>';
+  inherits: true;
+}
+@property --cell-value {
+  syntax: '<number>';
+  inherits: true;
+}
+@property --cell-height {
+  syntax: '<length>';
+  inherits: true;
+}
 
 *,
 ::before,
 ::after {
   box-sizing: border-box;
+  transform-style: preserve-3d;
 }
 
 :root {
@@ -38,14 +51,15 @@
 }
 
 body {
-  margin: 0;
-  background-color: teal;
-  color: #222;
-  display: flex;
-  flex-direction: column;
   --cell-border: max(1px, 0.035em);
   --cell-size: 9vmin;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  color: #222;
+  background-color: teal;
   font-size: calc(var(--cell-size) / 1.5);
+  perspective: 1000px;
 }
 
 body:not([data-current-city]) .in-game,
@@ -215,10 +229,45 @@ section {
   font-size: calc(var(--cell-size) / 1.5);
   margin: 1em 0;
 }
-section.completed {
-  /* perspective: 1000px; */
-  transform: rotate3d(1, 0, 0, 60deg) rotate(45deg);
+
+section.complete {
+  animation: complete-field 1s 1 forwards;
 }
+section.complete .city {
+  background: currentColor;
+  --max-size: max(var(--city-width), var(--city-height));
+}
+section.complete .cell {
+  color: transparent;
+  background-color: gray;
+  transform: scale(0.75);
+}
+section.complete .city .cell {
+  --cell-height: calc(6em * var(--cell-value) / var(--max-size));
+}
+section.complete .city .value::before,
+section.complete .city .value::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  transform-origin: 100% 100%;
+  width: var(--cell-size);
+  height: var(--cell-height);
+}
+section.complete .city .value::before {
+  background: #aaa;
+  transform: rotateX(90deg);
+}
+section.complete .city .value::after {
+  background: #999;
+  transform: rotate(90deg) rotateX(90deg);
+}
+section.complete .city .value {
+  background: #aaa;
+  transform: translateZ(var(--cell-height));
+}
+
 .hints {
   background-color: lightblue;
   display: flex;
@@ -413,5 +462,14 @@ aside button {
     flex-direction: column;
     margin-block-start: 1em;
     margin-inline-start: auto;
+  }
+}
+
+@keyframes complete-field {
+  from {
+    transform: rotate3d(1, 0, 0, 0deg) rotate(0deg);
+  }
+  to {
+    transform: rotate3d(1, 0, 0, 60deg) rotate(45deg);
   }
 }

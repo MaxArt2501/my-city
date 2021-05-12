@@ -168,6 +168,7 @@ function renderState() {
 
   renderForList(buildings.flat(), cityWrapper.children, createCell.bind(null, cityWrapper), (cell, value, index) => {
     cell.firstChild.textContent = value || '';
+    cell.style.setProperty('--cell-value', value || '0');
 
     const column = index % currentCity.width;
     const row = (index - column) / currentCity.height;
