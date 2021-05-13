@@ -228,44 +228,8 @@ section {
   text-align: center;
   font-size: calc(var(--cell-size) / 1.5);
   margin: 1em 0;
-}
-
-section.complete {
-  animation: complete-field 1s 1 forwards;
-}
-section.complete .city {
-  background: currentColor;
-  --max-size: max(var(--city-width), var(--city-height));
-}
-section.complete .cell {
-  color: transparent;
-  background-color: gray;
-  transform: scale(0.75);
-}
-section.complete .city .cell {
-  --cell-height: calc(6em * var(--cell-value) / var(--max-size));
-}
-section.complete .city .value::before,
-section.complete .city .value::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  transform-origin: 100% 100%;
-  width: var(--cell-size);
-  height: var(--cell-height);
-}
-section.complete .city .value::before {
-  background: #aaa;
-  transform: rotateX(90deg);
-}
-section.complete .city .value::after {
-  background: #999;
-  transform: rotate(90deg) rotateX(90deg);
-}
-section.complete .city .value {
-  background: #aaa;
-  transform: translateZ(var(--cell-height));
+  transform: rotate3d(1, 0, 0, 0deg) rotate(0deg);
+  transition: transform 1s;
 }
 
 .hints {
@@ -309,6 +273,8 @@ section.complete .city .value {
   display: grid;
   grid-template-columns: repeat(var(--mark-grid-cols), 1fr);
   grid-template-rows: repeat(var(--mark-grid-rows), 1fr);
+  transform: scale(1);
+  transition: transform 1s, color 1s, background-color 1s;
 }
 .error {
   color: red;
@@ -316,6 +282,35 @@ section.complete .city .value {
 
 .value {
   grid-area: 1 / 1 / span var(--mark-grid-rows) / span var(--mark-grid-cols);
+  background-color: transparent;
+  transition: background-color 1s;
+}
+.city .value::before,
+.city .value::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  transform-origin: 100% 100%;
+  width: var(--cell-size);
+  height: 0;
+  border: #222 solid 0;
+  border-left-width: 0.02em;
+  transition: height 1s;
+}
+.city .value::before {
+  background: linear-gradient(0deg, #d4e1ff, #868fa2);
+  transform: rotateX(90deg);
+}
+.city .value::after {
+  background: linear-gradient(0deg, #7d7fa4, #363950);
+  transform: rotate(90deg) rotateX(90deg);
+}
+.city .value {
+  transform: translateZ(0);
+  transition: background-color 1s, transform 1s, border-color 1s;
+  border: transparent solid;
+  border-width: 0.05em 0 0 0.05em;
 }
 
 .mark {
@@ -329,6 +324,30 @@ section.complete .city .value {
 }
 .value:empty ~ .mark {
   display: block;
+}
+
+section.complete {
+  transform: rotate3d(1, 0, 0, 60deg) rotate(45deg);
+}
+section.complete .city {
+  background: currentColor;
+  --max-size: max(var(--city-width), var(--city-height));
+}
+section.complete .cell {
+  color: transparent;
+  transform: scale(0.75);
+}
+section.complete .city .cell {
+  --cell-height: calc(6em * var(--cell-value) / var(--max-size));
+}
+section.complete .city .value::before,
+section.complete .city .value::after {
+  height: var(--cell-height);
+}
+section.complete .city .value {
+  background: #b7b7bb;
+  transform: translateZ(var(--cell-height));
+  border-color: #222;
 }
 
 .errors {
@@ -462,14 +481,5 @@ aside button {
     flex-direction: column;
     margin-block-start: 1em;
     margin-inline-start: auto;
-  }
-}
-
-@keyframes complete-field {
-  from {
-    transform: rotate3d(1, 0, 0, 0deg) rotate(0deg);
-  }
-  to {
-    transform: rotate3d(1, 0, 0, 60deg) rotate(45deg);
   }
 }

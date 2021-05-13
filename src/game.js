@@ -212,7 +212,6 @@ function createCell(parent) {
 export function restartGame() {
   stopClock();
 
-  field.classList.remove('complete');
   currentAttempt = `${new Date().toISOString()} PT0`;
   cityHistory = {
     attempts: updateAttempts(),
@@ -313,8 +312,10 @@ function updateStatus() {
   if (isComplete) {
     stopClock();
   }
-  field.classList.toggle('complete', isComplete);
   document.body.dataset.gameMode = markMode ? 'mark' : 'enter';
+  setTimeout(() => {
+    field.classList.toggle('complete', isComplete);
+  });
 }
 
 export function isCityComplete() {
