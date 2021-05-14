@@ -5,37 +5,27 @@
 }
 @property --cell-border {
   syntax: '<length>';
-  inherits: true;
 }
 @property --city-width {
   syntax: '<number>';
-  inherits: false;
-  initial-value: 1;
 }
 @property --city-height {
   syntax: '<number>';
-  inherits: false;
-  initial-value: 1;
 }
 @property --mark-grid-cols {
   syntax: '<number>';
-  inherits: true;
 }
 @property --mark-grid-rows {
   syntax: '<number>';
-  inherits: true;
 }
 @property --max-size {
   syntax: '<number>';
-  inherits: true;
 }
 @property --cell-value {
   syntax: '<number>';
-  inherits: true;
 }
 @property --cell-height {
   syntax: '<length>';
-  inherits: true;
 }
 
 *,
@@ -60,6 +50,7 @@ body {
   background-color: teal;
   font-size: calc(var(--cell-size) / 1.5);
   perspective: 1000px;
+  overflow: hidden;
 }
 
 body:not([data-current-city]) .in-game,
@@ -228,7 +219,7 @@ section {
   text-align: center;
   font-size: calc(var(--cell-size) / 1.5);
   margin: 1em 0;
-  transform: rotate3d(1, 0, 0, 0deg) rotate(0deg);
+  transform: translate(0, 0) rotate3d(1, 0, 0, 0deg) rotate(0deg);
   transition: transform 1s;
 }
 
@@ -282,8 +273,10 @@ section {
 
 .value {
   grid-area: 1 / 1 / span var(--mark-grid-rows) / span var(--mark-grid-cols);
-  background-color: transparent;
-  transition: background-color 1s;
+}
+.city .value {
+  transform: scale(1) translateZ(0);
+  transition: transform 1s, border-color 1s;
 }
 .city .value::before,
 .city .value::after {
@@ -294,23 +287,16 @@ section {
   transform-origin: 100% 100%;
   width: var(--cell-size);
   height: 0;
-  border: #222 solid 0;
-  border-left-width: 0.02em;
   transition: height 1s;
+  background-size: 100% calc(6vmin / var(--max-size)), auto;
 }
 .city .value::before {
-  background: linear-gradient(0deg, #d4e1ff, #868fa2);
+  background-image: linear-gradient(0deg, #0003 5%, #0000 5%), linear-gradient(0deg, #d4e1ff, #868fa2);
   transform: rotateX(90deg);
 }
 .city .value::after {
-  background: linear-gradient(0deg, #7d7fa4, #363950);
+  background-image: linear-gradient(0deg, #0003 5%, #0000 5%), linear-gradient(0deg, #7d7fa4, #363950);
   transform: rotate(90deg) rotateX(90deg);
-}
-.city .value {
-  transform: translateZ(0);
-  transition: background-color 1s, transform 1s, border-color 1s;
-  border: transparent solid;
-  border-width: 0.05em 0 0 0.05em;
 }
 
 .mark {
@@ -327,7 +313,7 @@ section {
 }
 
 section.complete {
-  transform: rotate3d(1, 0, 0, 60deg) rotate(45deg);
+  transform: translate(0, calc(50vmax - (var(--city-height) / 2 + 2) * var(--cell-size))) rotate3d(1, 0, 0, 60deg) rotate(45deg);
 }
 section.complete .city {
   background: currentColor;
@@ -335,10 +321,11 @@ section.complete .city {
 }
 section.complete .cell {
   color: transparent;
-  transform: scale(0.75);
+  background-color: #aaa;
+  transform: scale(0.866);
 }
 section.complete .city .cell {
-  --cell-height: calc(6em * var(--cell-value) / var(--max-size));
+  --cell-height: calc(36vmin * var(--cell-value) / var(--max-size));
 }
 section.complete .city .value::before,
 section.complete .city .value::after {
@@ -346,8 +333,7 @@ section.complete .city .value::after {
 }
 section.complete .city .value {
   background: #b7b7bb;
-  transform: translateZ(var(--cell-height));
-  border-color: #222;
+  transform: scale(0.866) translateZ(var(--cell-height));
 }
 
 .errors {
@@ -366,6 +352,11 @@ aside {
   font-size: calc(var(--cell-size) / 2);
   display: flex;
   justify-content: center;
+  opacity: 1;
+  transition: opacity 1s;
+}
+section.complete + aside {
+  opacity: 0;
 }
 
 aside button {
@@ -470,6 +461,9 @@ aside button {
 
   body > section {
     margin: auto 1em auto auto;
+  }
+  section.complete {
+    transform: translate(calc(var(--cell-size) * 5 / 6), 0) rotate3d(1, 0, 0, 60deg) rotate(45deg);
   }
 
   aside {
