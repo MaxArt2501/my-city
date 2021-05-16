@@ -104,8 +104,8 @@ dialog[open] ~ section:not(.complete) .mark {
   top: 0;
   right: 0;
   padding: 0.25em;
-  width: max(44px, 1em);
-  height: max(44px, 1em);
+  width: max(44px, 1.5em);
+  height: max(44px, 1.5em);
 }
 .close-dialog > svg {
   width: 100%;
@@ -164,9 +164,23 @@ header time {
   font-weight: bold;
 }
 
-a {
+h1 a,
+li a {
   text-decoration: none;
   color: inherit;
+}
+
+dialog a,
+dialog a:visited {
+  color: #767676;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+#about {
+  text-align: center;
 }
 
 [data-input-mode='mixed'] [data-icon]:not([data-icon='keyboard-mouse']),

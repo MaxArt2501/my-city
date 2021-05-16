@@ -1,6 +1,6 @@
 # my-city
 
-Web implementation of the logic puzzle "La mia città" by Giogio Dendi
+Web implementation of the logic puzzle "La mia città" by Giorgio Dendi
 
 ## To-do list
 
@@ -15,7 +15,7 @@ Web implementation of the logic puzzle "La mia città" by Giogio Dendi
 - [ ] Show game history
 - [ ] Make it a PWA
 - [ ] Register the protocol `my-city-game:`
-- [ ] About dialog
+- [x] About dialog
 - [ ] Import/export data
 - [ ] Ditch `localStorage` for IndexedDB
 - [ ] Annotation filler

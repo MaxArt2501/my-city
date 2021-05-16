@@ -166,7 +166,7 @@ document.addEventListener(
 );
 
 /** @type {Object.<string, HTMLDialogElement>} */
-const dialogs = ['sidebar', 'restartConfirm', 'help'].reduce(
+const dialogs = ['sidebar', 'restartConfirm', 'help', 'about'].reduce(
   (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
   {}
 );
@@ -180,6 +180,9 @@ function handleAction(button) {
   switch (action) {
     case 'help':
       dialogs.help.showModal();
+      break;
+    case 'about':
+      dialogs.about.showModal();
       break;
     case 'restart':
       if (isCityComplete()) {
