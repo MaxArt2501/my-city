@@ -94,8 +94,8 @@ dialog footer button[data-action='closeDialog'] {
   background-color: #949494;
 }
 
-dialog[open] ~ section .value,
-dialog[open] ~ section .mark {
+dialog[open] ~ section:not(.complete) .value,
+dialog[open] ~ section:not(.complete) .mark {
   filter: blur(0.25em);
 }
 
@@ -265,7 +265,7 @@ section {
   grid-template-columns: repeat(var(--mark-grid-cols), 1fr);
   grid-template-rows: repeat(var(--mark-grid-rows), 1fr);
   transform: scale(1);
-  transition: transform 1s, color 1s, background-color 1s;
+  transition: transform 1s, color 0s, background-color 0s;
 }
 .error {
   color: red;
@@ -276,7 +276,7 @@ section {
 }
 .city .value {
   transform: scale(1) translateZ(0);
-  transition: transform 1s, border-color 1s;
+  transition: transform 1s;
 }
 .city .value::before,
 .city .value::after {
@@ -342,6 +342,7 @@ section.complete .cell {
   color: transparent;
   background-color: #aaa;
   transform: scale(0.866);
+  transition: transform 1s, color 1s, background-color 1s;
 }
 section.complete .city .cell {
   --cell-height: calc(36vmin * var(--cell-value) / var(--max-size));
