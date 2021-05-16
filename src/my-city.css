@@ -291,11 +291,14 @@ section {
   background-size: 100% calc(6vmin / var(--max-size)), auto;
 }
 .city .value::before {
-  background-image: linear-gradient(0deg, #0003 5%, #0000 5%), linear-gradient(0deg, #d4e1ff, #868fa2);
+  background-image: radial-gradient(100% 50% at 30% 80%, #ffffe9, transparent), linear-gradient(0deg, #0003 5%, #0000 5%),
+    linear-gradient(0deg, #d4e1ff, #868fa2);
+  background-size: auto, 100% calc(6vmin / var(--max-size)), auto;
   transform: rotateX(90deg);
 }
 .city .value::after {
   background-image: linear-gradient(0deg, #0003 5%, #0000 5%), linear-gradient(0deg, #7d7fa4, #363950);
+  background-size: 100% calc(6vmin / var(--max-size)), auto;
   transform: rotate(90deg) rotateX(90deg);
 }
 
@@ -314,6 +317,22 @@ section {
 
 section.complete {
   transform: translate(0, calc(50vmax - (var(--city-height) / 2 + 2) * var(--cell-size))) rotate3d(1, 0, 0, 60deg) rotate(45deg);
+}
+section.complete::before,
+section.complete::after {
+  z-index: 1;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+section.complete::before {
+  content: 'Complete!';
+  grid-area: 3/1/4/4;
+}
+section.complete::after {
+  content: 'Time: ' attr(data-completion-time);
+  grid-area: 1/3/4/4;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
 }
 section.complete .city {
   background: currentColor;

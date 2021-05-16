@@ -11,7 +11,7 @@ Web implementation of the logic puzzle "La mia città" by Giogio Dendi
 - [ ] Display the errors
 - [ ] Completely redefine the input mode: join keyboard and pointer modes, ditch mixed mode (what was I thinking?!)
 - [ ] Check if the clock actually stops when it's intended
-- [ ] Completion effect!
+- [x] Completion effect!
 - [ ] Show game history
 - [ ] Make it a PWA
 - [ ] Register the protocol `my-city-game:`

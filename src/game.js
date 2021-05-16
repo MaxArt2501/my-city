@@ -308,6 +308,9 @@ function updateStatus() {
   const isComplete = isCityComplete();
   if (isComplete) {
     stopClock();
+    field.dataset.completionTime = formatElapsed(getAttemptElapsed(currentAttempt));
+  } else {
+    delete field.dataset.completionTime;
   }
   document.body.dataset.gameMode = markMode ? 'mark' : 'enter';
   setTimeout(() => {
