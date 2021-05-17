@@ -281,6 +281,45 @@ section {
   position: relative;
   z-index: 1;
 }
+[data-current-value='1'] [data-building-height='1'],
+[data-current-value='2'] [data-building-height='2'],
+[data-current-value='3'] [data-building-height='3'],
+[data-current-value='4'] [data-building-height='4'],
+[data-current-value='5'] [data-building-height='5'],
+[data-current-value='6'] [data-building-height='6'],
+[data-current-value='7'] [data-building-height='7'],
+[data-current-value='8'] [data-building-height='8'],
+[data-current-value='9'] [data-building-height='9'] {
+  background-color: khaki;
+  font-weight: 500;
+}
+[data-building-height='1'] {
+  --cell-value: 1;
+}
+[data-building-height='2'] {
+  --cell-value: 2;
+}
+[data-building-height='3'] {
+  --cell-value: 3;
+}
+[data-building-height='4'] {
+  --cell-value: 4;
+}
+[data-building-height='5'] {
+  --cell-value: 5;
+}
+[data-building-height='6'] {
+  --cell-value: 6;
+}
+[data-building-height='7'] {
+  --cell-value: 7;
+}
+[data-building-height='8'] {
+  --cell-value: 8;
+}
+[data-building-height='9'] {
+  --cell-value: 9;
+}
 
 .error {
   color: red;
