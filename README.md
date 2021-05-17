@@ -9,7 +9,7 @@ Web implementation of the logic puzzle "La mia città" by Giorgio Dendi
 - [ ] Set up `tabindex` attributes for keyboard users
 - [ ] Check if it's playable with a screen reader
 - [ ] Display the errors
-- [ ] Completely redefine the input mode: join keyboard and pointer modes, ditch mixed mode (what was I thinking?!)
+- [x] Completely redefine the input mode: join keyboard and pointer modes, ditch mixed mode (what was I thinking?!)
 - [ ] Check if the clock actually stops when it's intended
 - [x] Completion effect!
 - [ ] Show game history

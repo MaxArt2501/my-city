@@ -35,17 +35,9 @@ type GameAction =
   | 'hint'
   | 'fillMarks'
   | 'solve'
-  | 'switchInputMode'
   | 'toggleGameMode'
   | 'toggleSidebar'
   | 'closeDialog';
-
-type InputMode = 'mixed' | 'pointer' | 'keyboard';
-interface InputModule {
-  readonly mode: InputMode;
-  initialize(): void;
-  terminate(): void;
-}
 
 interface Document {
   readonly activeElement: HTMLElement | null;

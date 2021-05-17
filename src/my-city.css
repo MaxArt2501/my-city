@@ -33,7 +33,6 @@
 ::after {
   box-sizing: border-box;
   transform-style: preserve-3d;
-  transition-duration: 1s;
 }
 
 :root {
@@ -184,13 +183,7 @@ h2 {
   text-align: center;
 }
 
-[data-input-mode='mixed'] [data-icon]:not([data-icon='keyboard-mouse']),
-[data-input-mode='pointer'] [data-icon]:not([data-icon='finger']),
-[data-input-mode='keyboard'] [data-icon]:not([data-icon='keyboard']) {
-  display: none;
-}
-
-ul {
+nav ul {
   display: grid;
   grid-gap: 1vmin;
   grid-template-columns: 1fr 1fr;
@@ -199,22 +192,22 @@ ul {
   padding: 0;
   --cell-size: 4.5vmin;
 }
-ul li {
+nav ul li {
   display: flex;
 }
 ul li:hover {
   background-color: #fff3;
 }
-ul a {
+nav ul a {
   width: 100%;
   box-shadow: 0 0 0.1em;
 }
-ul a > div {
+nav ul a > div {
   color: white;
   font-size: 66.67%;
   padding-inline: 0.5em;
 }
-ul section {
+nav ul section {
   pointer-events: none;
 }
 time.current {
@@ -282,6 +275,13 @@ section {
   transform: scale(1);
   transition: transform, color 0s, background-color 0s;
 }
+.cell[aria-current='true']:not(.from-click) {
+  border-color: lightcoral;
+  box-shadow: 0 0 0 calc(var(--cell-size) / 15) lightcoral;
+  position: relative;
+  z-index: 1;
+}
+
 .error {
   color: red;
 }
@@ -428,23 +428,9 @@ aside button {
   background: khaki;
 }
 
-/* Input-mode specific styles */
-
-/* Mixed mode */
-
-/* Pointer mode */
-[data-input-mode='pointer'] .selectors [aria-current='true'] {
+.selectors [aria-current='true'] {
   box-shadow: inset 0 0 0 var(--cell-border) red;
   background-color: white;
-}
-
-/* Keyboard mode */
-
-[data-input-mode='keyboard'] .value[aria-current='true'],
-[data-input-mode='mixed'] .value[contenteditable='true'] {
-  border-color: lightcoral;
-  box-shadow: 0 0 0 calc(var(--cell-size) / 15) lightcoral;
-  position: relative;
 }
 
 @media (any-hover: hover) {

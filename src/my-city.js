@@ -1,15 +1,6 @@
 // @ts-check
-import {
-  initializeCity,
-  isCityComplete,
-  leaveCity,
-  renderCity,
-  restartGame,
-  startClock,
-  stopClock,
-  toggleMode,
-  travelHistory
-} from './game.js';
+import { initializeCity, leaveCity, renderCity, startClock, stopClock } from './game.js';
+import { initializeInput } from './input.js';
 import { deserializeCity, serializeCity } from './serialize.js';
 import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
 
@@ -21,22 +12,6 @@ import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } 
 async function loadCities(path = './cities.json') {
   const response = await fetch(path);
   return await response.json();
-}
-
-/**
- * Loads an input mode
- * @param {InputMode} mode
- * @returns {Promise<InputModule>}
- */
-async function setInputMode(mode) {
-  if (currentInputModule) {
-    currentInputModule.terminate();
-  }
-  /** @type {InputModule} */
-  const inputModule = await import(`./${mode}-input.js`);
-  inputModule.initialize();
-  document.body.dataset.inputMode = mode;
-  return (currentInputModule = inputModule);
 }
 
 /**
@@ -116,21 +91,8 @@ async function showCityList() {
 
 function main() {
   checkLocationHash();
-  setInputMode('mixed');
+  initializeInput();
 }
-
-/** @type {InputModule} */
-let currentInputModule;
-
-/** @type {InputMode[]} */
-const inputModes = ['mixed', 'pointer', 'keyboard'];
-document.addEventListener('keypress', ({ key }) => {
-  if (key.toLowerCase() === 'i') {
-    switchInputMode();
-  } else if (key.toLowerCase() === 'm') {
-    toggleMode();
-  }
-});
 
 window.addEventListener('hashchange', checkLocationHash);
 
@@ -141,14 +103,6 @@ document.addEventListener('visibilitychange', () => {
     stopClock();
   } else if (!document.querySelector('dialog[open]')) {
     startClock();
-  }
-});
-
-document.addEventListener('click', ({ target }) => {
-  /** @type {HTMLButtonElement} */
-  const actionButton = target.closest('button[data-action]');
-  if (actionButton) {
-    handleAction(actionButton);
   }
 });
 
@@ -164,70 +118,5 @@ document.addEventListener(
   },
   { capture: true }
 );
-
-/** @type {Object.<string, HTMLDialogElement>} */
-const dialogs = ['sidebar', 'restartConfirm', 'help', 'about'].reduce(
-  (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
-  {}
-);
-
-/**
- * Handles actions from the sidebar menu
- * @param {HTMLButtonElement} button
- */
-function handleAction(button) {
-  const action = button.dataset.action;
-  switch (action) {
-    case 'help':
-      dialogs.help.showModal();
-      break;
-    case 'about':
-      dialogs.about.showModal();
-      break;
-    case 'restart':
-      if (isCityComplete()) {
-        restartGame();
-        dialogs.sidebar.close();
-      } else {
-        dialogs.restartConfirm.showModal();
-      }
-      break;
-    case 'confirmRestart':
-      dialogs.restartConfirm.close();
-      dialogs.sidebar.close();
-      restartGame();
-      break;
-    case 'undo':
-      travelHistory(1);
-      break;
-    case 'redo':
-      travelHistory(-1);
-      break;
-    case 'switchInputMode':
-      switchInputMode();
-      break;
-    case 'toggleGameMode':
-      toggleMode();
-      break;
-    case 'toggleSidebar':
-      if (dialogs.sidebar.open) {
-        dialogs.sidebar.close();
-      } else {
-        dialogs.sidebar.showModal();
-        if (document.body.dataset.currentCity) {
-          stopClock();
-        }
-      }
-      break;
-    case 'closeDialog':
-      const dialog = button.closest('dialog');
-      dialog?.close();
-  }
-}
-
-function switchInputMode() {
-  const inputModeIndex = inputModes.indexOf(currentInputModule.mode);
-  setInputMode(inputModes[(inputModeIndex + 1) % inputModes.length]);
-}
 
 main();

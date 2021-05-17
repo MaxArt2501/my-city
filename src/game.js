@@ -1,4 +1,5 @@
 // @ts-check
+import { resetControls } from './input.js';
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
 import {
   createEmptyState,
@@ -87,6 +88,7 @@ export function initializeCity(cityData, theHistory) {
   }
   renderCity(field, cityData);
   renderState();
+  resetControls();
 }
 
 export function startClock() {
@@ -224,25 +226,25 @@ export function restartGame() {
 
 /**
  * Should create an element for an item of data, and attach it to the DOM tree
- * @param {HTMLSpanElement} valueContainer
+ * @param {HTMLDivElement} cell
  * @param {number} value
  */
-export function updateCellValue(valueContainer, value) {
+export function updateCellValue(cell, value) {
   if (isAttemptSuccessful(currentAttempt)) {
     // A successful attempt can't be updated - only navigated through its
     // history or restarted
     return;
   }
-  const [row, column] = getCoordinates(valueContainer.parentElement);
-  if (markMode && value) {
+  const [row, column] = getCoordinates(cell);
+  if (markMode) {
     const hasMark = marks[row][column].has(value);
     if (hasMark) {
       marks[row][column].delete(value);
     } else if (!hasMark && value) {
       marks[row][column].add(value);
     }
-  } else if (!markMode) {
-    buildings[row][column] = value;
+  } else {
+    buildings[row][column] = buildings[row][column] === value ? 0 : value;
   }
   updateHistory();
   renderState();
