@@ -22,3 +22,4 @@ Web implementation of the logic puzzle "La mia città" by Giorgio Dendi
 - [ ] Solver
 - [ ] Automatic difficulty computation
 - [ ] Wipe out data
+- [x] Add favicon
