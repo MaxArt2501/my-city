@@ -1,0 +1,30 @@
+{
+  "name": "my-city",
+  "version": "1.0.0",
+  "description": "Web implementation of the logic puzzle \"La mia città\" by Giorgio Dendi",
+  "main": "index.js",
+  "scripts": {
+    "build": "copyfiles -u 1 \"src/*.{js,json,html,css}\" public",
+    "dist": "npm run build && gh-pages -d public",
+    "start": "npm run build && hs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxArt2501/my-city.git"
+  },
+  "keywords": [
+    "puzzle"
+  ],
+  "author": "Massimo Artizzu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MaxArt2501/my-city/issues"
+  },
+  "homepage": "https://github.com/MaxArt2501/my-city#readme",
+  "devDependencies": {
+    "copyfiles": "^2.4.1",
+    "gh-pages": "^3.1.0",
+    "http-server": "^0.12.3"
+  }
+}
