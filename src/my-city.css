@@ -27,13 +27,19 @@
 @property --cell-height {
   syntax: '<length>';
 }
+@property --animation-duration {
+  syntax: '<time>';
+  inherits: true;
+  initial-value: 1s;
+}
 
 *,
 ::before,
 ::after {
   box-sizing: border-box;
   transform-style: preserve-3d;
-  transition: none 1s;
+  transition-property: none;
+  transition-duration: var(--animation-duration);
 }
 
 :root {
@@ -44,6 +50,7 @@
 body {
   --cell-border: max(1px, 0.035em);
   --cell-size: 9vmin;
+  --animation-duration: 1s;
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -51,7 +58,8 @@ body {
   background-color: teal;
   font-size: calc(var(--cell-size) / 1.5);
   perspective: 1000px;
-  overflow: hidden auto;
+  height: 100vh;
+  overflow: hidden;
 }
 
 body:not([data-current-city]) .in-game,
@@ -184,6 +192,9 @@ h2 {
   text-align: center;
 }
 
+nav {
+  overflow: auto;
+}
 nav ul {
   display: grid;
   grid-gap: 1vmin;
@@ -275,7 +286,7 @@ section {
   grid-template-columns: repeat(var(--mark-grid-cols), 1fr);
   grid-template-rows: repeat(var(--mark-grid-rows), 1fr);
   transform: scale(1);
-  transition: transform 1s, color 0s, background-color 0s;
+  transition: transform var(--animation-duration), color 0s, background-color 0s;
 }
 .cell[aria-current='true']:not(.from-click) {
   border-color: lightcoral;
@@ -399,6 +410,7 @@ section.complete .cell {
   background-color: #aaa;
   transform: scale(0.866);
   transition-property: transform, color, background-color;
+  transition-duration: var(--animation-duration);
 }
 section.complete .city .cell {
   --cell-height: calc(36vmin * var(--cell-value) / var(--max-size));
@@ -486,11 +498,15 @@ aside button {
     filter: invert(1);
   }
 } */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    --animation-duration: 0s;
+  }
+}
 
 @media (orientation: landscape) {
   body {
     flex-direction: row;
-    min-height: 100vh;
   }
 
   header {
@@ -511,6 +527,7 @@ aside button {
 
   nav {
     flex-grow: 1;
+    height: 100vh;
   }
   nav ul {
     margin: 0 0.5em;
