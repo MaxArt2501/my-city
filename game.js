@@ -192,7 +192,10 @@ function renderState() {
     Array.from({ length: maxValue }, (_, index) => index + 1),
     selectorWrapper.children,
     () => selectorWrapper.appendChild(Object.assign(document.createElement('button'), { type: 'button' })),
-    (button, value) => (button.textContent = value)
+    (button, value) => {
+      button.textContent = value;
+      button.setAttribute('aria-label', `Set the current value to ${value}`);
+    }
   );
 
   checkForErrors();
@@ -319,6 +322,10 @@ function updateStatus() {
     delete field.dataset.completionTime;
   }
   document.body.dataset.gameMode = markMode ? 'mark' : 'enter';
+  document
+    .querySelector('[data-action="toggleGameMode"]')
+    .setAttribute('aria-label', `Switch to ${markMode ? 'enter' : 'annotation'} mode`);
+
   setTimeout(() => {
     field.classList.toggle('complete', isComplete);
   });
