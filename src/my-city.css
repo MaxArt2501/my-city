@@ -510,7 +510,7 @@ aside button {
   nav {
     flex-grow: 1;
   }
-  ul {
+  nav ul {
     margin: 0 0.5em;
     grid-template-columns: repeat(auto-fit, 49.5vmin);
   }
