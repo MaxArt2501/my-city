@@ -12,7 +12,7 @@
 
 <body>
   <dialog id="sidebar">
-    <button type="button" class="close-dialog" data-action="closeDialog">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
       <svg aria-hidden="true" viewBox="0 0 24 24">
         <path
           d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
@@ -40,7 +40,7 @@
     </footer>
   </dialog>
   <dialog id="help">
-    <button type="button" class="close-dialog" data-action="closeDialog">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
       <svg aria-hidden="true" viewBox="0 0 24 24">
         <path
           d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
@@ -62,7 +62,8 @@
       with the same height. What I can tell you is how many buildings I can see from the some - but
       maybe not all! - sides of the grid.
     </p>
-    <section>
+    <section
+      aria-label="City of 4 rows, 4 columns. Hints on top: 3, 2, void, 3; hints on right: 2, 3, void, 2; hints on bottom: void, 2, void, 2; hints on left: 3, void, 2, 1">
       <div class="top hints">
         <div class="cell"><span class="value">3</span></div>
         <div class="cell"><span class="value">2</span></div>
@@ -118,7 +119,9 @@
       row, it's also clear that there's a <b>3</b>-story house in the last column, because you
       can see only <b>2</b> buildings in that row from the East.
     </p>
-    <section>
+    <section aria-label="City of 4 rows, 4 columns. Same hints as the previous example.
+      Buildings tall 4 are placed on the 1st row, 3rd column; 2nd row, 2nd column; 3rd row, 4th column; 4th row, 1st column.
+      A building tall 3 is placed on 4th row, 4th column">
       <div class="top hints">
         <div class="cell"><span class="value">3</span></div>
         <div class="cell"><span class="value">2</span></div>
@@ -179,7 +182,7 @@
     </ul>
   </dialog>
   <dialog id="about">
-    <button type="button" class="close-dialog" data-action="closeDialog">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
       <svg aria-hidden="true" viewBox="0 0 24 24">
         <path
           d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
@@ -207,19 +210,19 @@
   <header>
     <h1><a href="#">My city</a> <time id="elapsed" class="in-game"></time></h1>
     <div role="toolbar">
-      <button type="button" data-action="undo" class="in-game">
+      <button type="button" data-action="undo" class="in-game" aria-label="Undo the previous move">
         <svg aria-hidden="true" viewBox="0 0 24 24">
           <path
             d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
         </svg>
       </button>
-      <button type="button" data-action="redo" class="in-game">
+      <button type="button" data-action="redo" class="in-game" aria-label="Redo the next move">
         <svg aria-hidden="true" viewBox="0 0 24 24">
           <path
             d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16a8.002 8.002 0 0 1 7.6-5.5c1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
         </svg>
       </button>
-      <button type="button" data-action="toggleSidebar">
+      <button type="button" data-action="toggleSidebar" aria-label="Open the main menu">
         <svg aria-hidden="true" viewBox="0 0 16 16">
           <path
             d="M9.5 13a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
