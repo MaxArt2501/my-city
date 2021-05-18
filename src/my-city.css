@@ -33,6 +33,7 @@
 ::after {
   box-sizing: border-box;
   transform-style: preserve-3d;
+  transition: none 1s;
 }
 
 :root {
@@ -50,7 +51,7 @@ body {
   background-color: teal;
   font-size: calc(var(--cell-size) / 1.5);
   perspective: 1000px;
-  overflow: hidden;
+  overflow: hidden auto;
 }
 
 body:not([data-current-city]) .in-game,
@@ -226,9 +227,10 @@ section {
   line-height: var(--cell-size);
   text-align: center;
   font-size: calc(var(--cell-size) / 1.5);
-  margin: 1em 0;
+  margin: 1em auto;
   transform: translate(0, 0) rotate3d(1, 0, 0, 0deg) rotate(0deg);
-  transition: transform 1s;
+  transition-property: transform;
+  width: min-content;
 }
 
 .hints {
@@ -273,7 +275,7 @@ section {
   grid-template-columns: repeat(var(--mark-grid-cols), 1fr);
   grid-template-rows: repeat(var(--mark-grid-rows), 1fr);
   transform: scale(1);
-  transition: transform, color 0s, background-color 0s;
+  transition: transform 1s, color 0s, background-color 0s;
 }
 .cell[aria-current='true']:not(.from-click) {
   border-color: lightcoral;
@@ -330,7 +332,7 @@ section {
 }
 .city .value {
   transform: scale(1) translateZ(0);
-  transition: transform;
+  transition-property: transform;
 }
 .city .value::before,
 .city .value::after {
@@ -341,7 +343,7 @@ section {
   transform-origin: 100% 100%;
   width: var(--cell-size);
   height: 0;
-  transition: height;
+  transition-property: height;
   background-size: 100% calc(6vmin / var(--max-size)), auto;
 }
 .city .value::before {
@@ -396,7 +398,7 @@ section.complete .cell {
   color: transparent;
   background-color: #aaa;
   transform: scale(0.866);
-  transition: transform, color, background-color;
+  transition-property: transform, color, background-color;
 }
 section.complete .city .cell {
   --cell-height: calc(36vmin * var(--cell-value) / var(--max-size));
@@ -427,7 +429,7 @@ aside {
   display: flex;
   justify-content: center;
   opacity: 1;
-  transition: opacity;
+  transition-property: opacity;
 }
 section.complete + aside {
   opacity: 0;
