@@ -171,8 +171,12 @@ function renderState() {
 
     const column = index % currentCity.width;
     const row = (index - column) / currentCity.height;
+    const cellMarks = Array.from(marks[row][column]);
+    const label = `Row ${row}, column ${column}: ${value || (cellMarks.length ? `annotated with ${cellMarks.join(', ')}` : 'empty')}`;
+    cell.setAttribute('aria-label', label);
+
     renderForList(
-      Array.from(marks[row][column]),
+      cellMarks,
       cell.querySelectorAll('.mark'),
       () => cell.appendChild(Object.assign(document.createElement('span'), { className: 'mark' })),
       (wrapper, mark) => {
