@@ -313,6 +313,8 @@ function fillErrors(selector, errors) {
   });
 }
 
+const toggleModeBtn = document.querySelector('[data-action="toggleGameMode"]');
+const toolbar = document.querySelector('aside[role="toolbar"]');
 function updateStatus() {
   const isComplete = isCityComplete();
   if (isComplete) {
@@ -322,9 +324,9 @@ function updateStatus() {
     delete field.dataset.completionTime;
   }
   document.body.dataset.gameMode = markMode ? 'mark' : 'enter';
-  document
-    .querySelector('[data-action="toggleGameMode"]')
-    .setAttribute('aria-label', `Switch to ${markMode ? 'enter' : 'annotation'} mode`);
+  toggleModeBtn.setAttribute('aria-label', `Switch to ${markMode ? 'enter' : 'annotation'} mode`);
+  toolbar.setAttribute('aria-hidden', String(isComplete));
+  toolbar.querySelectorAll('button').forEach(button => (button.disabled = isComplete));
 
   setTimeout(() => {
     field.classList.toggle('complete', isComplete);
