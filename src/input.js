@@ -68,6 +68,9 @@ const isDirectionArrow = key => arrows.includes(key);
  * @param {KeyboardEvent} event
  */
 function handleKeyDown({ key, ctrlKey, shiftKey }) {
+  if (!currentCity) {
+    return;
+  }
   if (isDirectionArrow(key)) {
     const keyIndex = arrows.indexOf(key);
     const rowShift = (keyIndex & 1) === 0 ? keyIndex - 1 : 0;
