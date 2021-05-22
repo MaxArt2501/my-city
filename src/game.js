@@ -92,7 +92,7 @@ export function initializeCity(cityData, theHistory) {
 }
 
 export function startClock() {
-  if (!currentCity || isAttemptSuccessful(currentAttempt)) {
+  if (!currentCity || clockInterval || isAttemptSuccessful(currentAttempt)) {
     return;
   }
   attemptStart = Date.now();

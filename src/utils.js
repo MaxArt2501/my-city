@@ -127,7 +127,7 @@ function getBestRisingSequence(sequence) {
 }
 
 /**
- * Returns the longest possible monotone sequence from a sequence with missing
+ * Returns the shortest possible monotone sequence from a sequence with missing
  * numbers. Maybe not the most efficient, but good enough...
  * @param {number[]} sequence
  */
