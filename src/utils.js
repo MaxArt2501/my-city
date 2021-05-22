@@ -61,14 +61,12 @@ export function getBuildingValue(building) {
  * @returns {StairsRanges}
  */
 export function getStairsRanges(sequence) {
-  const availableHeights = Array.from({ length: sequence.length }, (_, index) => index + 1).filter(height => !sequence.includes(height));
+  const availableHeights = getMissingValues(sequence);
   if (availableHeights.length > 0) {
-    const ascendingFilled = fillSequence(sequence, availableHeights);
-    const maxStart = getStairsLength(ascendingFilled);
-    const minEnd = getStairsLength(ascendingFilled.slice().reverse());
-    const descendingFilled = fillSequence(sequence, availableHeights.slice().reverse());
-    const maxEnd = getStairsLength(descendingFilled.slice().reverse());
-    const minStart = getStairsLength(descendingFilled);
+    const maxStart = getStairsLength(getBestRisingSequence(sequence));
+    const maxEnd = getStairsLength(getBestRisingSequence(sequence.slice().reverse()));
+    const minStart = getStairsLength(getWorstRisingSequence(sequence));
+    const minEnd = getStairsLength(getWorstRisingSequence(sequence.slice().reverse()));
     return {
       start: [minStart, maxStart],
       end: [minEnd, maxEnd]
@@ -80,6 +78,14 @@ export function getStairsRanges(sequence) {
     start: [startLength, startLength],
     end: [endLength, endLength]
   };
+}
+
+/**
+ * Returns the numbers that are missing from the sequence
+ * @param {number[]} sequence The missing values, in ascending order
+ */
+function getMissingValues(sequence) {
+  return Array.from(sequence, (_, index) => index + 1).filter(value => !sequence.includes(value));
 }
 
 /**
@@ -99,15 +105,47 @@ function getStairsLength(sequence) {
 }
 
 /**
- * Replaces the 0s in the sequence with the filler numbers given as the second
- * parameter.
+ * Returns the longest possible monotone sequence from a sequence with missing
+ * numbers. Maybe not the most efficient, but good enough...
  * @param {number[]} sequence
- * @param {number[]} fillers
- * @returns {number[]}
  */
-function fillSequence(sequence, fillers) {
-  let fillerIndex = 0;
-  return sequence.map(height => height || fillers[fillerIndex++]);
+function getBestRisingSequence(sequence) {
+  let remaining = getMissingValues(sequence);
+  let previous = 0;
+  return sequence.map(value => {
+    let next = value;
+    if (!value) {
+      next = Math.min(...remaining.filter(val => val > previous));
+      if (isFinite(next)) {
+        remaining = remaining.filter(val => val !== next);
+      } else {
+        next = remaining.shift();
+      }
+    }
+    return (previous = next);
+  });
+}
+
+/**
+ * Returns the longest possible monotone sequence from a sequence with missing
+ * numbers. Maybe not the most efficient, but good enough...
+ * @param {number[]} sequence
+ */
+function getWorstRisingSequence(sequence) {
+  let remaining = getMissingValues(sequence);
+  let previous = 0;
+  return sequence.map(value => {
+    let next = value;
+    if (!value) {
+      next = Math.max(...remaining.filter(val => val < previous));
+      if (isFinite(next)) {
+        remaining = remaining.filter(val => val !== next);
+      } else {
+        next = remaining.pop();
+      }
+    }
+    return (previous = next);
+  });
 }
 
 /**
