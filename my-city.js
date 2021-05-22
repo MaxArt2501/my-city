@@ -2,6 +2,7 @@
 import { initializeCity, leaveCity, renderCity, startClock, stopClock } from './game.js';
 import { initializeInput } from './input.js';
 import { deserializeCity, serializeCity } from './serialize.js';
+import { loadHistory } from './storage.js';
 import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
 
 /**
@@ -12,23 +13,6 @@ import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } 
 async function loadCities(path = './cities.json') {
   const response = await fetch(path);
   return await response.json();
-}
-
-/**
- * Loads the history of a game, given the ID of the city
- * @param {string} cityId
- * @returns {CityHistory}
- */
-function loadHistory(cityId) {
-  if (localStorage[cityId]) {
-    try {
-      return JSON.parse(localStorage[cityId]);
-    } catch (error) {
-      console.error(`Found invalid history for city with ID '${cityId}'`);
-      console.error(error);
-    }
-  }
-  return { history: [], attempts: [] };
 }
 
 /** @type {HTMLUListElement} */
