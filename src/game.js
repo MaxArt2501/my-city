@@ -1,6 +1,7 @@
 // @ts-check
 import { resetControls } from './input.js';
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
+import { saveCityHistory } from './storage.js';
 import {
   createEmptyState,
   formatElapsed,
@@ -74,7 +75,6 @@ export function initializeCity(cityData, theHistory) {
 
   currentCity = cityData;
   cityId = serializeCity(cityData);
-  localStorage['.lastCity'] = cityId;
 
   startClock();
 
@@ -109,7 +109,7 @@ export function stopClock() {
         ...cityHistory,
         attempts: updateAttempts()
       };
-      localStorage[cityId] = JSON.stringify(cityHistory);
+      saveCurrentCity();
     }
   }
 }
@@ -223,7 +223,7 @@ export function restartGame() {
     attempts: updateAttempts(),
     history: []
   };
-  localStorage[cityId] = JSON.stringify(cityHistory);
+  saveCurrentCity();
   ({ buildings, marks } = createEmptyState());
 
   updateHistory();
@@ -347,7 +347,7 @@ function updateHistory() {
       history: [...history.slice(0, history.length - historyPointer), state],
       attempts: updateAttempts()
     };
-    localStorage.setItem(cityId, JSON.stringify(cityHistory));
+    saveCurrentCity();
     historyPointer = 0;
   }
 }
@@ -363,6 +363,10 @@ function updateAttempts() {
     return [...cityHistory.attempts.slice(0, attemptIndex), currentAttempt, ...cityHistory.attempts.slice(attemptIndex + 1)];
   }
   return [...cityHistory.attempts, currentAttempt];
+}
+
+function saveCurrentCity() {
+  saveCityHistory(cityId, cityHistory);
 }
 
 /**
