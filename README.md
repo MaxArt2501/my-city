@@ -23,3 +23,5 @@ Web implementation of the logic puzzle "La mia città" by Giorgio Dendi
 - [ ] Automatic difficulty computation
 - [ ] Wipe out data
 - [x] Add favicon
+- [ ] Export a game as a QR Code
+- [ ] Load a game from a QR Code
