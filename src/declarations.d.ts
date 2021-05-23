@@ -17,7 +17,10 @@ interface State {
   marks: Set<number>[][];
 }
 
-interface CityHistory {
+interface CityData {
+  id: string;
+  added: number;
+  lastPlayed: number;
   history: string[];
   attempts: string[];
 }
@@ -38,6 +41,18 @@ type GameAction =
   | 'toggleGameMode'
   | 'toggleSidebar'
   | 'closeDialog';
+
+interface MyCityMetadata {
+  version: string;
+  lastCity: string;
+}
+
+interface MyCityDatabase {
+  metadata: MyCityMetadata;
+  cities: Record<string, CityData>;
+}
+
+type StoreName = keyof MyCityDatabase;
 
 interface Document {
   readonly activeElement: HTMLElement | null;

@@ -2,7 +2,7 @@
 import { initializeCity, leaveCity, renderCity, startClock, stopClock } from './game.js';
 import { initializeInput } from './input.js';
 import { deserializeCity, serializeCity } from './serialize.js';
-import { loadHistory } from './storage.js';
+import { batchSaveCities, getAllCities, getAllCityIds, getCityData } from './storage.js';
 import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
 
 /**
@@ -12,7 +12,18 @@ import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } 
  */
 async function loadCities(path = './cities.json') {
   const response = await fetch(path);
-  return await response.json();
+  return response.json();
+}
+
+/**
+ * Insert a list of cities in storage if they're missing
+ * @param {string[]} ids
+ * @returns {Promise}
+ */
+async function addMissingCities(ids) {
+  const inStore = await getAllCityIds();
+  const added = Date.now();
+  return batchSaveCities(ids.filter(id => !inStore.includes(id)).map(id => ({ id, attempts: [], history: [], lastPlayed: null, added })));
 }
 
 /** @type {HTMLUListElement} */
@@ -20,12 +31,13 @@ const cityList = document.querySelector('nav ul');
 /** @type {HTMLTemplateElement} */
 const template = document.querySelector('#cityTemplate');
 
-function checkLocationHash() {
+async function checkLocationHash() {
   const hash = location.hash.slice(1).replace(/=/g, '');
   if (hash) {
     try {
       const city = deserializeCity(hash);
-      initializeCity(city, loadHistory(hash));
+      addMissingCities([hash]);
+      initializeCity(city, await getCityData(hash));
       document.body.dataset.currentCity = hash;
       cityList.textContent = '';
       return;
@@ -40,16 +52,15 @@ function checkLocationHash() {
 }
 
 async function showCityList() {
-  const cities = await loadCities();
+  const cities = await getAllCities();
   const list = document.createDocumentFragment();
-  for (const city of cities) {
+  for (const cityData of cities) {
+    const city = deserializeCity(cityData.id);
     const item = template.content.cloneNode(true);
     item.querySelector('span').textContent = `${city.width}×${city.height}`;
 
     const time = item.querySelector('time');
-    const cityId = serializeCity(city);
-    const { attempts } = loadHistory(cityId);
-    attempts.sort();
+    const attempts = cityData.attempts.slice().sort();
     const lastAttempt = attempts[attempts.length - 1];
     if (!lastAttempt) {
       time.textContent = '--:--';
@@ -67,13 +78,15 @@ async function showCityList() {
     }
 
     renderCity(item.querySelector('section'), city);
-    item.querySelector('a').href = `#${serializeCity(city)}`;
+    item.querySelector('a').href = `#${cityData.id}`;
     list.appendChild(item);
   }
   cityList.appendChild(list);
 }
 
-function main() {
+async function main() {
+  const cityIds = (await loadCities()).map(serializeCity);
+  await addMissingCities(cityIds);
   checkLocationHash();
   initializeInput();
 }

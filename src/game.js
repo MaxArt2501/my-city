@@ -1,7 +1,7 @@
 // @ts-check
 import { resetControls } from './input.js';
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
-import { saveCityHistory } from './storage.js';
+import { setMetadata, updateCityData } from './storage.js';
 import {
   createEmptyState,
   formatElapsed,
@@ -30,8 +30,8 @@ let gameErrors;
 
 export let markMode = false;
 
-/** @type {CityHistory} */
-let cityHistory;
+/** @type {CityData} */
+let cityData;
 
 /**
  * Tells how many moves we're behind in the current history with relation to
@@ -66,27 +66,29 @@ const redoBtn = document.querySelector('[data-action="redo"]');
 
 /**
  * Renders a city
- * @param {City} cityData
- * @param {CityHistory} theHistory
+ * @param {City} city
+ * @param {CityData} theData
  */
-export function initializeCity(cityData, theHistory) {
-  const { history, attempts } = theHistory;
+export function initializeCity(city, theData) {
+  const { history, attempts } = theData;
   currentAttempt = attempts[attempts.length - 1] || `${new Date().toISOString()} PT0`;
 
-  currentCity = cityData;
-  cityId = serializeCity(cityData);
+  currentCity = city;
+  cityId = serializeCity(city);
+  setMetadata(cityId, 'lastCity');
 
   startClock();
 
-  cityHistory = theHistory;
+  const lastPlayed = Date.now();
+  cityData = { ...theData, lastPlayed };
   if (history && history.length > 0) {
-    ({ buildings, marks } = deserializeState(history[history.length - 1], cityData.width, cityData.height));
+    ({ buildings, marks } = deserializeState(history[history.length - 1], city.width, city.height));
   } else {
     ({ buildings, marks } = createEmptyState());
-    cityHistory = { history: [], attempts: [currentAttempt] };
-    updateHistory();
+    cityData = { ...cityData, attempts: [currentAttempt], history: [serializeState(city, buildings, marks)] };
   }
-  renderCity(field, cityData);
+  saveCurrentCity();
+  renderCity(field, city);
   renderState();
   resetControls();
 }
@@ -105,8 +107,8 @@ export function stopClock() {
     clearInterval(clockInterval);
     clockInterval = void 0;
     if (!isAttemptSuccessful(currentAttempt)) {
-      cityHistory = {
-        ...cityHistory,
+      cityData = {
+        ...cityData,
         attempts: updateAttempts()
       };
       saveCurrentCity();
@@ -122,7 +124,7 @@ export function leaveCity() {
   cityId = void 0;
   buildings = void 0;
   marks = void 0;
-  cityHistory = void 0;
+  cityData = void 0;
 }
 
 function renderTime() {
@@ -134,24 +136,24 @@ function renderTime() {
 /**
  * Renders the game field according to the city data
  * @param {HTMLElement} gameField
- * @param {City} cityData
+ * @param {City} city
  */
-export function renderCity(gameField, cityData) {
+export function renderCity(gameField, city) {
   const structure = template.content.cloneNode(true);
 
-  cityData.borderHints.forEach((hints, index) => {
+  city.borderHints.forEach((hints, index) => {
     /** @type {HTMLDivElement} */
     const wrapper = structure.querySelector(`.${borderNames[index]}.hints`);
     renderForList(hints, wrapper.children, createCell.bind(null, wrapper), (cell, hint) => (cell.firstChild.textContent = hint || ''));
   });
 
-  renderForList(Array(cityData.width * cityData.height).fill(0), [], createCell.bind(null, structure.querySelector('.city')), () => {});
+  renderForList(Array(city.width * city.height).fill(0), [], createCell.bind(null, structure.querySelector('.city')), () => {});
 
-  const maxValue = Math.max(cityData.width, cityData.height);
+  const maxValue = Math.max(city.width, city.height);
   const markColumns = Math.ceil(Math.sqrt(maxValue));
   const markRows = Math.ceil(maxValue / markColumns);
-  gameField.style.setProperty('--city-width', String(cityData.width));
-  gameField.style.setProperty('--city-height', String(cityData.height));
+  gameField.style.setProperty('--city-width', String(city.width));
+  gameField.style.setProperty('--city-height', String(city.height));
   gameField.style.setProperty('--mark-grid-cols', String(markColumns));
   gameField.style.setProperty('--mark-grid-rows', String(markRows));
 
@@ -199,7 +201,7 @@ function renderState() {
   );
 
   checkForErrors();
-  undoBtn.disabled = historyPointer >= cityHistory.history.length - 1;
+  undoBtn.disabled = historyPointer >= cityData.history.length - 1;
   redoBtn.disabled = historyPointer === 0;
 }
 
@@ -219,7 +221,8 @@ export function restartGame() {
   stopClock();
 
   currentAttempt = `${new Date().toISOString()} PT0`;
-  cityHistory = {
+  cityData = {
+    ...cityData,
     attempts: updateAttempts(),
     history: []
   };
@@ -340,10 +343,11 @@ export function isCityComplete() {
 
 function updateHistory() {
   const state = serializeState(currentCity, buildings, marks);
-  const { history } = cityHistory;
-  const lastState = cityHistory[history.length - 1];
+  const { history } = cityData;
+  const lastState = cityData[history.length - 1];
   if (state !== lastState) {
-    cityHistory = {
+    cityData = {
+      ...cityData,
       history: [...history.slice(0, history.length - historyPointer), state],
       attempts: updateAttempts()
     };
@@ -358,15 +362,15 @@ function updateAttempts() {
   const elapsed = getAttemptElapsed(currentAttempt) + now - attemptStart;
   attemptStart = now;
   currentAttempt = `${timestamp} ${toISODuration(elapsed)}${isCityComplete() ? '*' : ''}`;
-  const attemptIndex = cityHistory.attempts.findIndex(attempt => attempt.startsWith(timestamp));
+  const attemptIndex = cityData.attempts.findIndex(attempt => attempt.startsWith(timestamp));
   if (attemptIndex >= 0) {
-    return [...cityHistory.attempts.slice(0, attemptIndex), currentAttempt, ...cityHistory.attempts.slice(attemptIndex + 1)];
+    return [...cityData.attempts.slice(0, attemptIndex), currentAttempt, ...cityData.attempts.slice(attemptIndex + 1)];
   }
-  return [...cityHistory.attempts, currentAttempt];
+  return [...cityData.attempts, currentAttempt];
 }
 
 function saveCurrentCity() {
-  saveCityHistory(cityId, cityHistory);
+  updateCityData(cityId, cityData);
 }
 
 /**
@@ -374,7 +378,7 @@ function saveCurrentCity() {
  * @param {number} shift
  */
 export function travelHistory(shift) {
-  const { history } = cityHistory;
+  const { history } = cityData;
   historyPointer = Math.max(0, Math.min(historyPointer + shift, history.length - 1));
   ({ buildings, marks } = deserializeState(history[history.length - historyPointer - 1], currentCity.width, currentCity.height));
   renderState();
