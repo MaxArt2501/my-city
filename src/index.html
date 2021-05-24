@@ -11,11 +11,16 @@
 </head>
 
 <body>
+  <svg>
+    <symbol id="close" viewBox="0 0 24 24">
+      <path
+        d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
+    </symbol>
+  </svg>
   <dialog id="sidebar">
     <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <path
-          d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
+      <svg aria-hidden="true">
+        <use href="#close" />
       </svg>
     </button>
 
@@ -41,9 +46,8 @@
   </dialog>
   <dialog id="help">
     <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <path
-          d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
+      <svg aria-hidden="true">
+        <use href="#close" />
       </svg>
     </button>
     <h2>How to play with My City</h2>
@@ -183,9 +187,8 @@
   </dialog>
   <dialog id="about">
     <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <path
-          d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
+      <svg aria-hidden="true">
+        <use href="#close" />
       </svg>
     </button>
     <h2>My City</h2>

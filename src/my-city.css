@@ -63,6 +63,7 @@ body {
 }
 
 body:not([data-current-city]) .in-game,
+body > svg,
 [data-current-city] .in-home {
   display: none;
 }
