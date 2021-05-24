@@ -28,10 +28,10 @@ const dialogs = ['sidebar', 'restartConfirm', 'help', 'about'].reduce(
 );
 
 export function initializeInput() {
-  field.addEventListener('click', handleClick);
-  document.querySelector('.selectors').addEventListener('click', handleValueSelect);
+  field.addEventListener('pointerdown', handleClick);
+  document.querySelector('.selectors').addEventListener('pointerdown', handleValueSelect);
   document.addEventListener('keydown', handleKeyDown);
-  document.addEventListener('click', ({ target }) => {
+  document.addEventListener('pointerdown', ({ target }) => {
     /** @type {HTMLButtonElement} */
     const actionButton = target.closest('button[data-action]');
     if (actionButton) {
