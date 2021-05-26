@@ -1,4 +1,5 @@
 // @ts-check
+import { exportData } from './data-manager.js';
 import {
   buildings,
   currentCity,
@@ -22,7 +23,7 @@ let cursorRow;
 let cursorColumn;
 
 /** @type {Object.<string, HTMLDialogElement>} */
-const dialogs = ['sidebar', 'restartConfirm', 'help', 'about'].reduce(
+export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import'].reduce(
   (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
   {}
 );
@@ -46,7 +47,7 @@ export function resetControls() {
 }
 
 /**
- * @param {MouseEvent} event
+ * @param {PointerEvent} event
  */
 function handleClick({ target }) {
   /** @type {HTMLDivElement} */
@@ -96,7 +97,7 @@ function handleKeyDown({ key, ctrlKey, shiftKey }) {
 }
 
 /**
- * @param {MouseEvent} event
+ * @param {PointerEvent} event
  */
 function handleValueSelect({ target }) {
   const button = target.closest('button');
@@ -192,5 +193,12 @@ function handleAction(button) {
     case 'closeDialog':
       const dialog = button.closest('dialog');
       dialog?.close();
+      break;
+    case 'export':
+      exportData();
+      break;
+    case 'import':
+      dialogs.import.showModal();
+      break;
   }
 }

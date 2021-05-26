@@ -79,7 +79,7 @@ export function initializeCity(city, theData) {
 
   startClock();
 
-  const lastPlayed = Date.now();
+  const lastPlayed = new Date().toISOString();
   cityData = { ...theData, lastPlayed };
   if (history && history.length > 0) {
     ({ buildings, marks } = deserializeState(history[history.length - 1], city.width, city.height));

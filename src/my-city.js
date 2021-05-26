@@ -1,9 +1,12 @@
 // @ts-check
+import { importData, parseImportData, verifyImportData } from './data-manager.js';
 import { initializeCity, leaveCity, renderCity, startClock, stopClock } from './game.js';
-import { initializeInput } from './input.js';
+import { dialogs, initializeInput } from './input.js';
 import { deserializeCity, serializeCity } from './serialize.js';
-import { batchSaveCities, getAllCities, getAllCityIds, getCityData } from './storage.js';
-import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
+import { addMissingCities, getAllCities, getCityData } from './storage.js';
+import { formatElapsed, formatSize, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
+
+export const VERSION = '0.1.0';
 
 /**
  * Load a JSON file of cities
@@ -13,17 +16,6 @@ import { formatElapsed, getAttemptElapsed, isAttemptSuccessful, toISODuration } 
 async function loadCities(path = './cities.json') {
   const response = await fetch(path);
   return response.json();
-}
-
-/**
- * Insert a list of cities in storage if they're missing
- * @param {string[]} ids
- * @returns {Promise}
- */
-async function addMissingCities(ids) {
-  const inStore = await getAllCityIds();
-  const added = Date.now();
-  return batchSaveCities(ids.filter(id => !inStore.includes(id)).map(id => ({ id, attempts: [], history: [], lastPlayed: null, added })));
 }
 
 /** @type {HTMLUListElement} */
@@ -81,7 +73,35 @@ async function showCityList() {
     item.querySelector('a').href = `#${cityData.id}`;
     list.appendChild(item);
   }
+  while (cityList.lastChild) {
+    cityList.lastChild.remove();
+  }
   cityList.appendChild(list);
+}
+
+/** @type {HTMLFormElement} */
+const importForm = document.querySelector('#importForm');
+/** @type {HTMLDivElement} */
+const importInfo = document.querySelector('#importInfo');
+/** @type {HTMLInputElement} */
+const dataFile = document.querySelector('#dataFile');
+
+/** @type {ExportData} */
+let currentImportData;
+
+/**
+ * @param {File} file
+ */
+async function previewImportData(file) {
+  const data = await parseImportData(file);
+  const error = verifyImportData(data);
+  importInfo.classList.toggle('error', !!error);
+  importInfo.innerHTML =
+    error ||
+    `${data.cities.length} ${data.cities.length === 1 ? 'city' : 'cities'} on <time datetime=${data.date}>${new Date(
+      data.date
+    ).toLocaleDateString()}</time>, ${formatSize(file.size)}`;
+  dataFile.setCustomValidity(error || '');
 }
 
 async function main() {
@@ -101,6 +121,25 @@ document.addEventListener('visibilitychange', () => {
   } else if (!document.querySelector('dialog[open]')) {
     startClock();
   }
+});
+
+// @ts-ignore
+dataFile.addEventListener('change', event => previewImportData(event.target.files[0]));
+
+importForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  // @ts-ignore
+  const mode = importForm.elements.importMode.value;
+  await importData(await parseImportData(dataFile.files[0]), mode);
+  dialogs.import.close();
+  dialogs.sidebar.close();
+  showCityList();
+});
+dialogs.import.addEventListener('close', () => {
+  currentImportData = undefined;
+  importInfo.textContent = '';
+  importInfo.classList.remove('error');
+  dataFile.form.reset();
 });
 
 document.addEventListener(

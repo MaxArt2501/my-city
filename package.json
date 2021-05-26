@@ -1,6 +1,6 @@
 {
   "name": "my-city",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Web implementation of the logic puzzle \"La mia città\" by Giorgio Dendi",
   "main": "index.js",
   "scripts": {

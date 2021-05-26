@@ -19,8 +19,8 @@ interface State {
 
 interface CityData {
   id: string;
-  added: number;
-  lastPlayed: number;
+  added: string;
+  lastPlayed: string;
   history: string[];
   attempts: string[];
 }
@@ -54,6 +54,17 @@ interface MyCityDatabase {
 
 type StoreName = keyof MyCityDatabase;
 
+interface ExportData {
+  version: string;
+  date: string;
+  cities: CityData[];
+}
+
+type ImportMode = 'merge' | 'replace' | 'cities';
+
+/*
+ * Reasonable overrides for DOM definitions
+ */
 interface Document {
   readonly activeElement: HTMLElement | null;
 }

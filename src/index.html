@@ -210,6 +210,33 @@
         href="https://github.com/MaxArt2501/my-city/blob/main/LICENSE">license</a>.
     </p>
   </dialog>
+  <dialog id="import">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
+      <svg aria-hidden="true">
+        <use href="#close" />
+      </svg>
+    </button>
+    <h2>Import Data</h2>
+    <form id="importForm">
+      <label class="file-input">
+        <input type="file" id="dataFile" required>
+        Select a file
+      </label>
+      <div id="importInfo" aria-live="polite"></div>
+      <div>Import mode:</div>
+      <div role="radiogroup">
+        <input type="radio" name="importMode" id="importMode_merge" value="merge" checked>
+        <label for="importMode_merge">Merge with existing data</label>
+        <input type="radio" name="importMode" id="importMode_replace" value="replace">
+        <label for="importMode_replace">Replace existing data</label>
+        <input type="radio" name="importMode" id="importMode_cities" value="cities">
+        <label for="importMode_cities">Import missing cities only</label>
+      </div>
+      <footer>
+        <button type="submit" data-action="doImport">Import</button>
+      </footer>
+    </form>
+  </dialog>
   <header>
     <h1><a href="#">My city</a> <time id="elapsed" class="in-game"></time></h1>
     <div role="toolbar">

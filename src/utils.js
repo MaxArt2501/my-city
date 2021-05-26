@@ -187,6 +187,7 @@ export function fromISODuration(string) {
 }
 
 const ATTEMPT_TIME_RE = / (PT[\d\.HM]*)\*?$/;
+
 /**
  * Returns the elapsed time of an attempt
  * @param {string} attempt
@@ -220,4 +221,34 @@ export function formatElapsed(millis) {
  */
 export function isAttemptSuccessful(attempt) {
   return !!attempt && attempt.endsWith('*');
+}
+
+/**
+ * Checks if the argument is a valid attempt string
+ * @param {*} attempt
+ * @returns {boolean}
+ */
+export function isValidAttempt(attempt) {
+  if (typeof attempt !== 'string') {
+    return false;
+  }
+  const timestamp = attempt.slice(0, attempt.indexOf(' '));
+  return !isNaN(Date.parse(timestamp)) && ATTEMPT_TIME_RE.test(attempt);
+}
+
+const MEBIBYTE = 1048576;
+const KIBIBYTE = 1024;
+/**
+ * Formats the given amount of bytes in a human-readable format
+ * @param {number} amount
+ * @returns {string}
+ */
+export function formatSize(amount) {
+  if (amount >= MEBIBYTE) {
+    return `${+(amount / MEBIBYTE).toFixed(1)} MiB`;
+  }
+  if (amount >= KIBIBYTE) {
+    return `${+(amount / KIBIBYTE).toFixed(1)} KiB`;
+  }
+  return `${amount} bytes`;
 }
