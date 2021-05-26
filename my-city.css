@@ -63,6 +63,7 @@ body {
 }
 
 body:not([data-current-city]) .in-game,
+body > svg,
 [data-current-city] .in-home {
   display: none;
 }
@@ -73,6 +74,7 @@ dialog {
   max-width: calc(100% - 2em);
   font-size: 75%;
   font-weight: 100;
+  color: #222;
 }
 ::backdrop {
   background: #0006;
@@ -95,9 +97,24 @@ dialog button {
   line-height: 1.5;
   text-align: start;
 }
-dialog footer button {
+form:invalid button[type='submit'],
+dialog button:disabled {
+  opacity: 0.67;
+  cursor: not-allowed;
+}
+dialog footer button,
+.file-input {
   background-color: deepskyblue;
   padding: 0 0.5em 0.1em;
+  border-radius: 0.01em;
+}
+dialog footer button:focus,
+.file-input:focus {
+  box-shadow: 0 0 0 0.1em white, 0 0 0 0.2em deepskyblue;
+}
+dialog footer button:focus:not(:focus-visible),
+.file-input:focus:not(:focus-visible) {
+  box-shadow: none;
 }
 dialog footer button[data-action='closeDialog'] {
   background-color: #949494;
@@ -126,6 +143,49 @@ dialog[open] ~ section:not(.complete) .mark {
   width: 9em;
   margin: 0 0 0 auto;
   max-height: none;
+}
+
+form {
+  display: grid;
+  grid-gap: 0.5em 0;
+}
+.file-input {
+  position: relative;
+  justify-self: start;
+  line-height: 1.5;
+}
+.file-input input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+[role='radiogroup'] {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  grid-gap: 0 0.25em;
+}
+input[type='radio'] {
+  -webkit-appearance: none;
+  appearance: none;
+  font-size: 1em;
+  width: 0.5em;
+  height: 0.5em;
+  background-image: radial-gradient(closest-side, transparent 75%, currentColor 80%, currentColor 95%, transparent 100%);
+  margin: 0 0 -0.1em;
+  color: inherit;
+}
+input[type='radio']:checked {
+  background-image: radial-gradient(
+    closest-side,
+    currentColor 50%,
+    transparent 55%,
+    transparent 75%,
+    currentColor 80%,
+    currentColor 95%,
+    transparent 100%
+  );
 }
 
 header {

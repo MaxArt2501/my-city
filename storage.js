@@ -1,4 +1,6 @@
 // @ts-check
+import { VERSION } from './my-city.js';
+
 /** @type {Promise.<IDBDatabase>} */
 export const dbPromise = new Promise((resolve, reject) => {
   const request = indexedDB.open('MyCity');
@@ -8,7 +10,7 @@ export const dbPromise = new Promise((resolve, reject) => {
     const db = request.result;
     db.createObjectStore('cities', { keyPath: 'id' });
     const mdStore = db.createObjectStore('metadata');
-    mdStore.add('0.1.0', 'version');
+    mdStore.add(VERSION, 'version');
   });
 });
 
@@ -111,4 +113,15 @@ export function batchSaveCities(cities) {
     xaction.addEventListener('complete', () => resolve(), { once: true });
     xaction.addEventListener('error', reject, { once: true });
   });
+}
+
+/**
+ * Insert a list of cities in storage if they're missing
+ * @param {string[]} ids
+ * @returns {Promise}
+ */
+export async function addMissingCities(ids) {
+  const inStore = await getAllCityIds();
+  const added = new Date().toISOString();
+  return batchSaveCities(ids.filter(id => !inStore.includes(id)).map(id => ({ id, attempts: [], history: [], lastPlayed: null, added })));
 }
