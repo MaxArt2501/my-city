@@ -4,6 +4,7 @@ import {
   buildings,
   currentCity,
   field,
+  fillMarks,
   isCityComplete,
   markMode,
   marks,
@@ -199,6 +200,10 @@ function handleAction(button) {
       break;
     case 'import':
       dialogs.import.showModal();
+      break;
+    case 'fillMarks':
+      dialogs.sidebar.close();
+      fillMarks();
       break;
   }
 }

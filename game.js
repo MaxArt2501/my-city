@@ -5,9 +5,11 @@ import { setMetadata, updateCityData } from './storage.js';
 import {
   createEmptyState,
   formatElapsed,
+  getAllowedHeights,
   getAttemptElapsed,
+  getBorderErrors,
   getCoordinates,
-  getStairsRanges,
+  getFieldErrors,
   isAttemptSuccessful,
   renderForList,
   toISODuration
@@ -273,10 +275,10 @@ export function toggleMode(forceMarkMode) {
  * Computes the errors in the field and eventually renders them
  */
 function checkForErrors() {
-  const fieldErrors = getFieldErrors();
+  const fieldErrors = Array.from(getFieldErrors(buildings));
   fillErrors('.city > .cell', fieldErrors);
 
-  const borderErrors = getBorderErrors();
+  const borderErrors = Array.from(getBorderErrors(buildings, currentCity.borderHints));
   fillErrors('.hints > .cell', borderErrors);
 
   gameErrors = [...fieldErrors, ...borderErrors];
@@ -385,94 +387,10 @@ export function travelHistory(shift) {
 }
 
 /**
- * Returns errors for duplicate building heights in rows and columns
- * @returns {GameError[]}
+ * Fills the empty cells with annotations for all the admissible height values
  */
-function getFieldErrors() {
-  /** @type {GameError[]} */
-  const errors = [];
-  buildings.forEach((row, rowIndex) => {
-    row.forEach((cell, colIndex) => {
-      if (!cell) {
-        return;
-      }
-      const cellIndex = rowIndex * currentCity.width + colIndex;
-      buildings.forEach((checkRow, checkRowIndex) => {
-        const checkCell = checkRow[colIndex];
-        if (cell === checkCell && rowIndex !== checkRowIndex) {
-          errors.push({
-            type: 'cell',
-            message: `There is another "${cell}" in this column`,
-            index: cellIndex
-          });
-        }
-      });
-      if (row.indexOf(cell) !== colIndex || row.lastIndexOf(cell) !== colIndex) {
-        errors.push({
-          type: 'cell',
-          message: `There is another "${cell}" in this row`,
-          index: cellIndex
-        });
-      }
-    });
-  });
-  return errors;
-}
-
-/**
- * Returns errors for unsatisfied border hints
- * @returns {GameError[]}
- */
-function getBorderErrors() {
-  /** @type {GameError[]} */
-  const errors = [];
-  for (let index = 0; index < currentCity.height; index++) {
-    const startHint = currentCity.borderHints[3][currentCity.height - index - 1];
-    const endHint = currentCity.borderHints[1][index];
-    if (!startHint && !endHint) {
-      continue;
-    }
-
-    const row = buildings[index];
-    const ranges = getStairsRanges(row);
-    if ((startHint && startHint < ranges.start[0]) || startHint > ranges.start[1]) {
-      errors.push({
-        type: 'border',
-        message: `The constraint "${startHint}" cannot be satisfied`,
-        index: 2 * (currentCity.width + currentCity.height) - index - 1
-      });
-    }
-    if ((endHint && endHint < ranges.end[0]) || endHint > ranges.end[1]) {
-      errors.push({
-        type: 'border',
-        message: `The constraint "${endHint}" cannot be satisfied`,
-        index: currentCity.width + index
-      });
-    }
-  }
-  for (let index = 0; index < currentCity.width; index++) {
-    const startHint = currentCity.borderHints[0][index];
-    const endHint = currentCity.borderHints[2][currentCity.width - index - 1];
-    if (!startHint && !endHint) {
-      continue;
-    }
-
-    const column = buildings.map(row => row[index]);
-    const ranges = getStairsRanges(column);
-    if (startHint && (startHint < ranges.start[0] || startHint > ranges.start[1])) {
-      errors.push({
-        type: 'border',
-        message: `The constraint "${startHint}" cannot be satisfied`,
-        index
-      });
-    }
-    if (endHint && (endHint < ranges.end[0] || endHint > ranges.end[1])) {
-      errors.push({
-        type: 'border',
-        message: `The constraint "${endHint}" cannot be satisfied`,
-        index: 2 * currentCity.width + currentCity.height - index - 1
-      });
-    }
-  }
-  return errors;
+export function fillMarks() {
+  marks = getAllowedHeights(buildings, currentCity.borderHints);
+  updateHistory();
+  renderState();
 }
