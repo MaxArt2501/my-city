@@ -1,7 +1,9 @@
+type BorderHints = [number[], number[], number[], number[]];
+
 interface City {
   width: number;
   height: number;
-  borderHints: number[][];
+  borderHints: BorderHints;
 }
 interface GameError {
   type: string;

@@ -253,3 +253,130 @@ export function formatSize(amount) {
   }
   return `${amount} bytes`;
 }
+
+/**
+ * Returns errors for duplicate building heights in rows and columns
+ * @param {number[][]} buildings
+ * @returns {Generator<GameError>}
+ */
+export function* getFieldErrors(buildings) {
+  const width = buildings[0].length;
+  for (let rowIndex = 0; rowIndex < buildings.length; rowIndex++) {
+    const row = buildings[rowIndex];
+    for (let colIndex = 0; colIndex < row.length; colIndex++) {
+      const cell = row[colIndex];
+      if (!cell) {
+        continue;
+      }
+      const cellIndex = rowIndex * width + colIndex;
+      for (let checkRowIndex = 0; checkRowIndex < buildings.length; checkRowIndex++) {
+        const checkRow = buildings[checkRowIndex];
+        const checkCell = checkRow[colIndex];
+        if (cell === checkCell && rowIndex !== checkRowIndex) {
+          yield {
+            type: 'cell',
+            message: `There is another "${cell}" in this column`,
+            index: cellIndex
+          };
+        }
+      }
+      if (row.indexOf(cell) !== colIndex || row.lastIndexOf(cell) !== colIndex) {
+        yield {
+          type: 'cell',
+          message: `There is another "${cell}" in this row`,
+          index: cellIndex
+        };
+      }
+    }
+  }
+}
+
+/**
+ * Returns errors for unsatisfied border hints
+ * @param {number[][]} buildings
+ * @param {BorderHints} borderHints
+ * @returns {Generator<GameError>}
+ */
+export function* getBorderErrors(buildings, borderHints) {
+  const width = buildings[0].length;
+  const height = buildings.length;
+  for (let index = 0; index < height; index++) {
+    const startHint = borderHints[3][height - index - 1];
+    const endHint = borderHints[1][index];
+    if (!startHint && !endHint) {
+      continue;
+    }
+
+    const row = buildings[index];
+    const ranges = getStairsRanges(row);
+    if ((startHint && startHint < ranges.start[0]) || startHint > ranges.start[1]) {
+      yield {
+        type: 'border',
+        message: `The constraint "${startHint}" cannot be satisfied`,
+        index: 2 * (width + height) - index - 1
+      };
+    }
+    if ((endHint && endHint < ranges.end[0]) || endHint > ranges.end[1]) {
+      yield {
+        type: 'border',
+        message: `The constraint "${endHint}" cannot be satisfied`,
+        index: width + index
+      };
+    }
+  }
+  for (let index = 0; index < width; index++) {
+    const startHint = borderHints[0][index];
+    const endHint = borderHints[2][width - index - 1];
+    if (!startHint && !endHint) {
+      continue;
+    }
+
+    const column = buildings.map(row => row[index]);
+    const ranges = getStairsRanges(column);
+    if (startHint && (startHint < ranges.start[0] || startHint > ranges.start[1])) {
+      yield {
+        type: 'border',
+        message: `The constraint "${startHint}" cannot be satisfied`,
+        index
+      };
+    }
+    if (endHint && (endHint < ranges.end[0] || endHint > ranges.end[1])) {
+      yield {
+        type: 'border',
+        message: `The constraint "${endHint}" cannot be satisfied`,
+        index: 2 * width + height - index - 1
+      };
+    }
+  }
+}
+
+/**
+ *
+ * @param {number[][]} buildings
+ * @param {[number[], number[], number[], number[]]} borderHints
+ */
+export function getAllowedHeights(buildings, borderHints) {
+  const maxSize = Math.max(buildings.length, buildings[0].length);
+  const cityClone = buildings.map(row => row.slice());
+  return buildings.map((row, rowIndex) => {
+    return row.map((cell, colIndex) => {
+      /** @type {Set<number>} */
+      const marks = new Set();
+      if (!cell) {
+        for (let height = 1; height <= maxSize; height++) {
+          cityClone[rowIndex][colIndex] = height;
+          const firstFieldError = getFieldErrors(cityClone).next().value;
+          if (firstFieldError) {
+            continue;
+          }
+          const firstBorderError = getBorderErrors(cityClone, borderHints).next().value;
+          if (!firstBorderError) {
+            marks.add(height);
+          }
+        }
+        cityClone[rowIndex][colIndex] = cell;
+      }
+      return marks;
+    });
+  });
+}
