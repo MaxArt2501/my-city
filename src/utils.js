@@ -1,3 +1,4 @@
+// @ts-check
 import { buildings, currentCity } from './game.js';
 
 /**
@@ -30,7 +31,7 @@ export function createEmptyState() {
  * @param {Element} element
  */
 export function getElementIndex(element) {
-  return Array.from(element.parentElement.children).indexOf(element);
+  return Array.from(element.parentNode.children).indexOf(element);
 }
 
 /**
@@ -183,7 +184,7 @@ export function fromISODuration(string) {
   if (!match) {
     return NaN;
   }
-  return (match[1] || 0) * 36e5 + (match[2] || 0) * 6e4 + (match[3] || 0) * 1000;
+  return (+match[1] || 0) * 36e5 + (+match[2] || 0) * 6e4 + (+match[3] || 0) * 1000;
 }
 
 const ATTEMPT_TIME_RE = / (PT[\d\.HM]*)\*?$/;
