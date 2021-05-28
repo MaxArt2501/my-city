@@ -149,8 +149,8 @@ function getWorstRisingSequence(sequence, remaining) {
     }
     const tallest = remaining[remaining.length - 1];
     if (tallest > high || remaining[0] > low) {
-    remaining = remaining.slice(0, -1);
-    return tallest;
+      remaining = remaining.slice(0, -1);
+      return tallest;
     }
     const shortest = remaining[0];
     remaining = remaining.slice(1);
@@ -360,9 +360,11 @@ export function* getBorderErrors(buildings, borderHints) {
 }
 
 /**
- *
+ * Returns a set of allowed heights (i.e., values that wouldn't cause an error
+ * if placed there) for each cell in the city grid
  * @param {number[][]} buildings
  * @param {[number[], number[], number[], number[]]} borderHints
+ * @returns {Set<number>[][]}
  */
 export function getAllowedHeights(buildings, borderHints) {
   const maxSize = Math.max(buildings.length, buildings[0].length);
@@ -389,3 +391,78 @@ export function getAllowedHeights(buildings, borderHints) {
     });
   });
 }
+
+/**
+ *
+ * @param {Set<number>[][]} marks
+ * @returns {[number, number]}
+ */
+function findNextDetermined(marks) {
+  for (let row = 0; row < marks.length; row++) {
+    for (let column = 0; column < marks[row].length; column++) {
+      if (marks[row][column].size === 1) {
+        return [row, column];
+      }
+    }
+  }
+}
+
+/**
+ *
+ * @param {[number[], number[], number[], number[]]} borderHints
+ * @param {number[][]} buildings
+ * @returns {Generator<[number, number, number]>}
+ */
+export function* solve(borderHints, buildings = borderHints[0].map(() => new Array(borderHints[1].length).fill(0))) {
+  const maxSize = Math.max(buildings.length, buildings[0].length);
+  const cityClone = buildings.map(row => row.slice());
+  /** @type {Set<number>[][]}  */
+  let reduced;
+
+  /**
+   * @param {number} row
+   * @param {number} column
+   * @param {number} value
+   * @returns {[number, number, number]}
+   */
+  function placeHeight(row, column, value) {
+    hasFound = true;
+    reduced.forEach(rowValues => rowValues[column].delete(value));
+    reduced[row].forEach(set => set.delete(value));
+    cityClone[row][column] = value;
+    return [row, column, value];
+  }
+
+  /** @type {boolean} */
+  let hasFound;
+  do {
+    hasFound = false;
+    reduced = getAllowedHeights(cityClone, borderHints);
+
+    /** @type {[number, number]} */
+    let detemined;
+    while ((detemined = findNextDetermined(reduced))) {
+      const [row, column] = detemined;
+      const [value] = [...reduced[row][column]];
+      yield placeHeight(row, column, value);
+    }
+
+    for (let height = maxSize; height > 0; height--) {
+      for (let row = 0; row < reduced.length; row++) {
+        const setRow = reduced[row];
+        const hasHeight = setRow.filter(set => set.has(height));
+        if (hasHeight.length === 1) {
+          yield placeHeight(row, setRow.indexOf(hasHeight[0]), height);
+        }
+      }
+      for (let column = 0; column < reduced[0].length; column++) {
+        const setColumn = reduced.map(setRow => setRow[column]);
+        const hasHeight = setColumn.filter(set => set.has(height));
+        if (hasHeight.length === 1) {
+          yield placeHeight(setColumn.indexOf(hasHeight[0]), column, height);
+        }
+      }
+    }
+  } while (hasFound);
+}
+window['solve'] = solve;

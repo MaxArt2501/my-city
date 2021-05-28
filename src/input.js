@@ -8,6 +8,7 @@ import {
   isCityComplete,
   markMode,
   marks,
+  placeHint,
   restartGame,
   stopClock,
   toggleMode,
@@ -24,7 +25,7 @@ let cursorRow;
 let cursorColumn;
 
 /** @type {Object.<string, HTMLDialogElement>} */
-export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import'].reduce(
+export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 'noIdea'].reduce(
   (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
   {}
 );
@@ -55,8 +56,8 @@ function handleClick({ target }) {
   const cell = target.closest('.city .cell');
   if (cell && isFinite(currentValue)) {
     const value = markMode || getBuildingValue(cell) !== currentValue ? currentValue : 0;
-    updateCellValue(cell, value);
     const [row, column] = getCoordinates(cell);
+    updateCellValue(row, column, value);
     setPosition(row, column, true);
   }
 }
@@ -83,12 +84,12 @@ function handleKeyDown({ key, ctrlKey, shiftKey }) {
   } else if (key.toLowerCase() === 'm') {
     toggleMode();
   } else if (key === 'Enter' || key === ' ') {
-    updateCellValue(getCurrentCell(), currentValue);
+    updateCellValue(cursorRow, cursorColumn, currentValue);
   } else if (key === 'Delete' || key === 'Backspace') {
     if (markMode && marks[cursorRow][cursorColumn].has(currentValue)) {
-      updateCellValue(getCurrentCell(), currentValue);
+      updateCellValue(cursorRow, cursorColumn, currentValue);
     } else if (!markMode) {
-      updateCellValue(getCurrentCell(), buildings[cursorRow][cursorColumn]);
+      updateCellValue(cursorRow, cursorColumn, buildings[cursorRow][cursorColumn]);
     }
   } else if (key.toLowerCase() === 'z' && ctrlKey && !shiftKey) {
     travelHistory(1);
@@ -204,6 +205,10 @@ function handleAction(button) {
     case 'fillMarks':
       dialogs.sidebar.close();
       fillMarks();
+      break;
+    case 'hint':
+      placeHint();
+      dialogs.sidebar.close();
       break;
   }
 }
