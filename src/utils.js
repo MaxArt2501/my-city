@@ -64,10 +64,10 @@ export function getBuildingValue(building) {
 export function getStairsRanges(sequence) {
   const availableHeights = getMissingValues(sequence);
   if (availableHeights.length > 0) {
-    const maxStart = getStairsLength(getBestRisingSequence(sequence));
-    const maxEnd = getStairsLength(getBestRisingSequence(sequence.slice().reverse()));
-    const minStart = getStairsLength(getWorstRisingSequence(sequence));
-    const minEnd = getStairsLength(getWorstRisingSequence(sequence.slice().reverse()));
+    const minStart = getStairsLength(getWorstRisingSequence(sequence, availableHeights));
+    const minEnd = getStairsLength(getWorstRisingSequence(sequence.slice().reverse(), availableHeights));
+    const maxStart = getStairsLength(getBestRisingSequence(sequence, availableHeights));
+    const maxEnd = getStairsLength(getBestRisingSequence(sequence.slice().reverse(), availableHeights));
     return {
       start: [minStart, maxStart],
       end: [minEnd, maxEnd]
@@ -109,21 +109,26 @@ function getStairsLength(sequence) {
  * Returns the longest possible monotone sequence from a sequence with missing
  * numbers. Maybe not the most efficient, but good enough...
  * @param {number[]} sequence
+ * @param {number[]} remaining
  */
-function getBestRisingSequence(sequence) {
-  let remaining = getMissingValues(sequence);
-  let previous = 0;
-  return sequence.map(value => {
-    let next = value;
-    if (!value) {
-      next = Math.min(...remaining.filter(val => val > previous));
-      if (isFinite(next)) {
-        remaining = remaining.filter(val => val !== next);
-      } else {
-        next = remaining.shift();
-      }
+function getBestRisingSequence(sequence, remaining) {
+  let low = 0;
+  let high = Infinity;
+  return sequence.map((value, index) => {
+    if (value) {
+      low = Math.max(low, value);
+      high = Math.min(...sequence.slice(index + 1).filter(cell => cell > value));
+      return value;
     }
-    return (previous = next);
+    const fitIndex = remaining.findIndex(height => height > low && height < high);
+    if (fitIndex >= 0) {
+      low = remaining[fitIndex];
+      remaining = [...remaining.slice(0, fitIndex), ...remaining.slice(fitIndex + 1)];
+      return low;
+    }
+    const height = remaining[0];
+    remaining = remaining.slice(1);
+    return height;
   });
 }
 
@@ -131,21 +136,25 @@ function getBestRisingSequence(sequence) {
  * Returns the shortest possible monotone sequence from a sequence with missing
  * numbers. Maybe not the most efficient, but good enough...
  * @param {number[]} sequence
+ * @param {number[]} remaining
  */
-function getWorstRisingSequence(sequence) {
-  let remaining = getMissingValues(sequence);
-  let previous = 0;
-  return sequence.map(value => {
-    let next = value;
-    if (!value) {
-      next = Math.max(...remaining.filter(val => val < previous));
-      if (isFinite(next)) {
-        remaining = remaining.filter(val => val !== next);
-      } else {
-        next = remaining.pop();
-      }
+function getWorstRisingSequence(sequence, remaining) {
+  let low = 0;
+  let high = Infinity;
+  return sequence.map((value, index) => {
+    if (value) {
+      low = Math.max(low, value);
+      high = Math.min(...sequence.slice(index + 1).filter(cell => cell > value));
+      return value;
     }
-    return (previous = next);
+    if (remaining[0] < low) {
+      const height = remaining[0];
+      remaining = remaining.slice(1);
+      return height;
+    }
+    const tallest = remaining[remaining.length - 1];
+    remaining = remaining.slice(0, -1);
+    return tallest;
   });
 }
 
