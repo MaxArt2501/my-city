@@ -147,14 +147,14 @@ function getWorstRisingSequence(sequence, remaining) {
       high = Math.min(...sequence.slice(index + 1).filter(cell => cell > value));
       return value;
     }
-    if (remaining[0] < low) {
-      const height = remaining[0];
-      remaining = remaining.slice(1);
-      return height;
-    }
     const tallest = remaining[remaining.length - 1];
+    if (tallest > high || remaining[0] > low) {
     remaining = remaining.slice(0, -1);
     return tallest;
+    }
+    const shortest = remaining[0];
+    remaining = remaining.slice(1);
+    return shortest;
   });
 }
 
