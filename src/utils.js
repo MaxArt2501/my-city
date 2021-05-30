@@ -400,31 +400,54 @@ export function* getBorderErrors(buildings, borderHints) {
  * Returns a set of allowed heights (i.e., values that wouldn't cause an error
  * if placed there) for each cell in the city grid
  * @param {number[][]} buildings
- * @param {[number[], number[], number[], number[]]} borderHints
+ * @param {BorderHints} borderHints
+ * @param {number} rowIndex
+ * @param {number} columnIndex
+ * @returns {Set<number>}
+ */
+export function getAllowedCellHeights(buildings, borderHints, rowIndex, columnIndex) {
+  const [width, height] = [buildings[0].length, buildings.length];
+  const maxSize = Math.max(width, height);
+
+  const row = buildings[rowIndex].slice();
+  const column = getColumn(buildings, columnIndex);
+  /** @type {[number, number]} */
+  const rowHints = [borderHints[3][height - rowIndex - 1], borderHints[1][rowIndex]];
+  /** @type {[number, number]} */
+  const colHints = [borderHints[0][columnIndex], borderHints[2][width - columnIndex - 1]];
+
+      /** @type {Set<number>} */
+      const marks = new Set();
+
+  for (let value = 1; value <= maxSize; value++) {
+    if (row.includes(value) || column.includes(value)) {
+            continue;
+          }
+    row[columnIndex] = value;
+    const rowErrors = getConstraintsErrors(row, ...rowHints);
+    if (!rowErrors.includes(true)) {
+      column[rowIndex] = value;
+      const colErrors = getConstraintsErrors(column, ...colHints);
+      if (!colErrors.includes(true)) {
+        marks.add(value);
+          }
+        }
+      }
+
+      return marks;
+}
+
+/**
+ * Returns a set of allowed heights (i.e., values that wouldn't cause an error
+ * if placed there) for each cell in the city grid
+ * @param {number[][]} buildings
+ * @param {BorderHints} borderHints
  * @returns {Set<number>[][]}
  */
 export function getAllowedHeights(buildings, borderHints) {
-  const maxSize = Math.max(buildings.length, buildings[0].length);
-  const cityClone = buildings.map(row => row.slice());
   return buildings.map((row, rowIndex) => {
     return row.map((cell, colIndex) => {
-      /** @type {Set<number>} */
-      const marks = new Set();
-      if (!cell) {
-        for (let height = 1; height <= maxSize; height++) {
-          cityClone[rowIndex][colIndex] = height;
-          const firstFieldError = getFieldErrors(cityClone).next().value;
-          if (firstFieldError) {
-            continue;
-          }
-          const firstBorderError = getBorderErrors(cityClone, borderHints).next().value;
-          if (!firstBorderError) {
-            marks.add(height);
-          }
-        }
-        cityClone[rowIndex][colIndex] = cell;
-      }
-      return marks;
+      return cell === 0 ? getAllowedCellHeights(buildings, borderHints, rowIndex, colIndex) : new Set();
     });
   });
 }
@@ -454,7 +477,7 @@ export function* solve(borderHints, buildings = borderHints[0].map(() => new Arr
   const maxSize = Math.max(buildings.length, buildings[0].length);
   const cityClone = buildings.map(row => row.slice());
   /** @type {Set<number>[][]}  */
-  let reduced;
+  const reduced = getAllowedHeights(cityClone, borderHints);
 
   /**
    * @param {number} row
@@ -464,9 +487,18 @@ export function* solve(borderHints, buildings = borderHints[0].map(() => new Arr
    */
   function placeHeight(row, column, value) {
     hasFound = true;
-    reduced.forEach(rowValues => rowValues[column].delete(value));
-    reduced[row].forEach(set => set.delete(value));
     cityClone[row][column] = value;
+    cityClone.forEach((rowValues, rowIndex) => {
+      if (rowValues[column] === 0) {
+        reduced[rowIndex][column] = getAllowedCellHeights(cityClone, borderHints, rowIndex, column);
+      }
+    });
+    cityClone[row].forEach((cell, colIndex) => {
+      if (cell === 0) {
+        reduced[row][colIndex] = getAllowedCellHeights(cityClone, borderHints, row, colIndex);
+      }
+    });
+    reduced[row][column].clear();
     return [row, column, value];
   }
 
@@ -474,7 +506,6 @@ export function* solve(borderHints, buildings = borderHints[0].map(() => new Arr
   let hasFound;
   do {
     hasFound = false;
-    reduced = getAllowedHeights(cityClone, borderHints);
 
     /** @type {[number, number]} */
     let detemined;
@@ -487,6 +518,10 @@ export function* solve(borderHints, buildings = borderHints[0].map(() => new Arr
     for (let height = maxSize; height > 0; height--) {
       for (let row = 0; row < reduced.length; row++) {
         const setRow = reduced[row];
+        if (setRow.some((set, column) => !cityClone[row][column] && set.size === 0)) {
+          // There's been a problem with the given configuration
+          return;
+        }
         const hasHeight = setRow.filter(set => set.has(height));
         if (hasHeight.length === 1) {
           yield placeHeight(row, setRow.indexOf(hasHeight[0]), height);
@@ -501,5 +536,49 @@ export function* solve(borderHints, buildings = borderHints[0].map(() => new Arr
       }
     }
   } while (hasFound);
+
+  const missingHeights = cityClone.reduce((sum, row) => sum + row.filter(height => !height).length, 0);
+  if (missingHeights === 0) {
+    return;
+  }
+
+  /** @type {[number, number]} */
+  let bestSet;
+  reduced.forEach((setRow, row) => {
+    setRow.forEach((set, column) => {
+      if (set.size > 1 && (!bestSet || set.size < reduced[bestSet[0]][bestSet[1]].size)) {
+        bestSet = [row, column];
+      }
+    });
+  });
+  const [bestRow, bestCol] = bestSet;
+
+  const alternatives = Array.from(reduced[bestRow][bestCol]);
+  const moveGens = alternatives.map(height => {
+    const attemptCity = cityClone.map(row => row.slice());
+    attemptCity[bestRow][bestCol] = height;
+    return solve(borderHints, attemptCity);
+  });
+  /** @type {Array<Array<[number, number, number]>>} */
+  const moveLists = moveGens.map(() => []);
+
+  /** @type {Array<IteratorResult<[number, number, number], void>>} */
+  let moveResults;
+  do {
+    moveResults = moveGens.map(gen => gen.next());
+    moveResults.forEach(({ value }, index) => {
+      if (value) {
+        moveLists[index].push(value);
+      }
+    });
+  } while (moveResults.some(({ done }) => !done));
+
+  const successfulIndex = moveLists.findIndex(({ length }) => length === missingHeights - 1);
+  if (successfulIndex >= 0) {
+    yield [bestRow, bestCol, alternatives[successfulIndex]];
+    for (const move of moveLists[successfulIndex]) {
+      yield move;
+    }
+  }
 }
 window['solve'] = solve;
