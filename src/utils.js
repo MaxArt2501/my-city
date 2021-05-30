@@ -139,20 +139,18 @@ function getBestRisingSequence(sequence, remaining) {
  * @param {number[]} remaining
  */
 function getWorstRisingSequence(sequence, remaining) {
-  let low = 0;
-  let high = Infinity;
   return sequence.map((value, index) => {
     if (value) {
-      low = Math.max(low, value);
-      high = Math.min(...sequence.slice(index + 1).filter(cell => cell > value));
       return value;
     }
+    const shortest = remaining[0];
     const tallest = remaining[remaining.length - 1];
-    if (tallest > high || remaining[0] > low) {
+    const prevTallest = Math.max(...sequence.slice(0, index));
+    const nextTallest = Math.max(...sequence.slice(index + 1));
+    if (tallest > nextTallest || shortest > prevTallest) {
       remaining = remaining.slice(0, -1);
       return tallest;
     }
-    const shortest = remaining[0];
     remaining = remaining.slice(1);
     return shortest;
   });
