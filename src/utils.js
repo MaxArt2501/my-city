@@ -262,47 +262,88 @@ export function formatSize(amount) {
 }
 
 /**
+ *
+ * @param {number[][]} buildings
+ * @param {number} column
+ * @returns {number[]}
+ */
+function getColumn(buildings, column) {
+  return buildings.map(row => row[column]);
+}
+
+/**
+ *
+ * @param {number[]} sequence
+ * @returns {Generator<number, void, void>}
+ */
+function* getDuplicateErrors(sequence) {
+  for (let index = 0; index < sequence.length; index++) {
+    const value = sequence[index];
+    if (!value) {
+      continue;
+    }
+    if (
+      (index < sequence.length - 1 && sequence.indexOf(value, index + 1) >= 0) ||
+      (index > 0 && sequence.lastIndexOf(value, index - 1) >= 0)
+    ) {
+      yield index;
+    }
+  }
+}
+
+/**
  * Returns errors for duplicate building heights in rows and columns
  * @param {number[][]} buildings
- * @returns {Generator<GameError>}
+ * @returns {Generator<GameError, void, void>}
  */
 export function* getFieldErrors(buildings) {
   const width = buildings[0].length;
-  for (let rowIndex = 0; rowIndex < buildings.length; rowIndex++) {
-    const row = buildings[rowIndex];
-    for (let colIndex = 0; colIndex < row.length; colIndex++) {
-      const cell = row[colIndex];
-      if (!cell) {
-        continue;
-      }
-      const cellIndex = rowIndex * width + colIndex;
-      for (let checkRowIndex = 0; checkRowIndex < buildings.length; checkRowIndex++) {
-        const checkRow = buildings[checkRowIndex];
-        const checkCell = checkRow[colIndex];
-        if (cell === checkCell && rowIndex !== checkRowIndex) {
+  for (let row = 0; row < buildings.length; row++) {
+    const errorGen = getDuplicateErrors(buildings[row]);
+    /** @type {IteratorResult<number, void>} */
+    let errorResult;
+    while (typeof (errorResult = errorGen.next()).value === 'number') {
           yield {
             type: 'cell',
-            message: `There is another "${cell}" in this column`,
-            index: cellIndex
+        message: `There is another "${buildings[row][errorResult.value]}" in this row`,
+        index: width * row + errorResult.value
           };
         }
       }
-      if (row.indexOf(cell) !== colIndex || row.lastIndexOf(cell) !== colIndex) {
+  for (let column = 0; column < buildings[0].length; column++) {
+    const errorGen = getDuplicateErrors(getColumn(buildings, column));
+    /** @type {IteratorResult<number, void>} */
+    let errorResult;
+    while (typeof (errorResult = errorGen.next()).value === 'number') {
         yield {
           type: 'cell',
-          message: `There is another "${cell}" in this row`,
-          index: cellIndex
+        message: `There is another "${buildings[errorResult.value][column]}" in this column`,
+        index: width * errorResult.value + column
         };
       }
     }
   }
+
+/**
+ *
+ * @param {number[]} sequence
+ * @param {number} startHint
+ * @param {number} endHint
+ * @returns {[boolean, boolean]}
+ */
+function getConstraintsErrors(sequence, startHint, endHint) {
+  const ranges = getStairsRanges(sequence);
+  return [
+    (startHint && startHint < ranges.start[0]) || startHint > ranges.start[1],
+    (endHint && endHint < ranges.end[0]) || endHint > ranges.end[1]
+  ];
 }
 
 /**
  * Returns errors for unsatisfied border hints
  * @param {number[][]} buildings
  * @param {BorderHints} borderHints
- * @returns {Generator<GameError>}
+ * @returns {Generator<GameError, void, void>}
  */
 export function* getBorderErrors(buildings, borderHints) {
   const width = buildings[0].length;
@@ -314,16 +355,15 @@ export function* getBorderErrors(buildings, borderHints) {
       continue;
     }
 
-    const row = buildings[index];
-    const ranges = getStairsRanges(row);
-    if ((startHint && startHint < ranges.start[0]) || startHint > ranges.start[1]) {
+    const [startError, endError] = getConstraintsErrors(buildings[index], startHint, endHint);
+    if (startError) {
       yield {
         type: 'border',
         message: `The constraint "${startHint}" cannot be satisfied`,
         index: 2 * (width + height) - index - 1
       };
     }
-    if ((endHint && endHint < ranges.end[0]) || endHint > ranges.end[1]) {
+    if (endError) {
       yield {
         type: 'border',
         message: `The constraint "${endHint}" cannot be satisfied`,
@@ -338,16 +378,15 @@ export function* getBorderErrors(buildings, borderHints) {
       continue;
     }
 
-    const column = buildings.map(row => row[index]);
-    const ranges = getStairsRanges(column);
-    if (startHint && (startHint < ranges.start[0] || startHint > ranges.start[1])) {
+    const [startError, endError] = getConstraintsErrors(getColumn(buildings, index), startHint, endHint);
+    if (startError) {
       yield {
         type: 'border',
         message: `The constraint "${startHint}" cannot be satisfied`,
         index
       };
     }
-    if (endHint && (endHint < ranges.end[0] || endHint > ranges.end[1])) {
+    if (endError) {
       yield {
         type: 'border',
         message: `The constraint "${endHint}" cannot be satisfied`,
