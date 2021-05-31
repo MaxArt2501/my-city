@@ -117,7 +117,7 @@ function getBestRisingSequence(sequence, remaining) {
   return sequence.map((value, index) => {
     if (value) {
       low = Math.max(low, value);
-      high = Math.min(...sequence.slice(index + 1).filter(cell => cell > value));
+      high = sequence.slice(index + 1).find(cell => cell > value) || Infinity;
       return value;
     }
     const fitIndex = remaining.findIndex(height => height > low && height < high);
@@ -146,8 +146,8 @@ function getWorstRisingSequence(sequence, remaining) {
     const shortest = remaining[0];
     const tallest = remaining[remaining.length - 1];
     const prevTallest = Math.max(...sequence.slice(0, index));
-    const nextTallest = Math.max(...sequence.slice(index + 1));
-    if (tallest > nextTallest || shortest > prevTallest) {
+    const nextTaller = sequence.slice(index + 1).find(height => height > prevTallest) || 0;
+    if (tallest > nextTaller || shortest > prevTallest) {
       remaining = remaining.slice(0, -1);
       return tallest;
     }
@@ -303,26 +303,26 @@ export function* getFieldErrors(buildings) {
     /** @type {IteratorResult<number, void>} */
     let errorResult;
     while (typeof (errorResult = errorGen.next()).value === 'number') {
-          yield {
-            type: 'cell',
+      yield {
+        type: 'cell',
         message: `There is another "${buildings[row][errorResult.value]}" in this row`,
         index: width * row + errorResult.value
-          };
-        }
-      }
+      };
+    }
+  }
   for (let column = 0; column < buildings[0].length; column++) {
     const errorGen = getDuplicateErrors(getColumn(buildings, column));
     /** @type {IteratorResult<number, void>} */
     let errorResult;
     while (typeof (errorResult = errorGen.next()).value === 'number') {
-        yield {
-          type: 'cell',
+      yield {
+        type: 'cell',
         message: `There is another "${buildings[errorResult.value][column]}" in this column`,
         index: width * errorResult.value + column
-        };
-      }
+      };
     }
   }
+}
 
 /**
  *
@@ -416,13 +416,13 @@ export function getAllowedCellHeights(buildings, borderHints, rowIndex, columnIn
   /** @type {[number, number]} */
   const colHints = [borderHints[0][columnIndex], borderHints[2][width - columnIndex - 1]];
 
-      /** @type {Set<number>} */
-      const marks = new Set();
+  /** @type {Set<number>} */
+  const marks = new Set();
 
   for (let value = 1; value <= maxSize; value++) {
     if (row.includes(value) || column.includes(value)) {
-            continue;
-          }
+      continue;
+    }
     row[columnIndex] = value;
     const rowErrors = getConstraintsErrors(row, ...rowHints);
     if (!rowErrors.includes(true)) {
@@ -430,11 +430,11 @@ export function getAllowedCellHeights(buildings, borderHints, rowIndex, columnIn
       const colErrors = getConstraintsErrors(column, ...colHints);
       if (!colErrors.includes(true)) {
         marks.add(value);
-          }
-        }
       }
+    }
+  }
 
-      return marks;
+  return marks;
 }
 
 /**
@@ -579,12 +579,12 @@ export function* solve(
     });
   } while (moveResults.some(({ done }) => !done));
 
-  const successfulIndex = moveLists.findIndex(({ length }) => length === missingHeights - 1);
-  if (successfulIndex >= 0) {
-    yield [bestRow, bestCol, alternatives[successfulIndex]];
-    for (const move of moveLists[successfulIndex]) {
+  const longest = Math.max(...moveLists.map(list => list.length));
+  if (longest >= 0) {
+    const longestIndex = moveLists.findIndex(({ length }) => length === longest);
+    yield [bestRow, bestCol, alternatives[longestIndex]];
+    for (const move of moveLists[longestIndex]) {
       yield move;
     }
   }
 }
-window['solve'] = solve;
