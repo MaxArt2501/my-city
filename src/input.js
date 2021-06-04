@@ -15,6 +15,7 @@ import {
   travelHistory,
   updateCellValue
 } from './game.js';
+import { wipeData } from './storage.js';
 import { getBuildingValue, getCoordinates, getElementIndex, shiftValue } from './utils.js';
 
 /** @type {number} */
@@ -25,7 +26,7 @@ let cursorRow;
 let cursorColumn;
 
 /** @type {Object.<string, HTMLDialogElement>} */
-export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 'noIdea'].reduce(
+export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 'wipeConfirm', 'noIdea'].reduce(
   (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
   {}
 );
@@ -201,6 +202,12 @@ function handleAction(button) {
       break;
     case 'import':
       dialogs.import.showModal();
+      break;
+    case 'wipe':
+      dialogs.wipeConfirm.showModal();
+      break;
+    case 'confirmWipe':
+      wipeData().then(() => location.reload());
       break;
     case 'fillMarks':
       dialogs.sidebar.close();

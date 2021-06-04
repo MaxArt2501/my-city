@@ -27,6 +27,7 @@
     <button type="button" class="in-home" data-action="help">Help</button>
     <button type="button" class="in-home" data-action="export">Export data</button>
     <button type="button" class="in-home" data-action="import">Import data</button>
+    <button type="button" class="in-home" data-action="wipe">Wipe data</button>
     <button type="button" class="in-home" data-action="settings">Settings</button>
     <button type="button" class="in-home" data-action="about">About</button>
 
@@ -42,6 +43,14 @@
     <footer>
       <button type="button" data-action="closeDialog">Cancel</button>
       <button type="button" data-action="confirmRestart">Restart</button>
+    </footer>
+  </dialog>
+  <dialog id="wipeConfirm">
+    Are you sure you want to wipe all your local data?
+    <p>Maybe you'd like to <button type="button" data-action="export"> do a backup</button> first. Just in case.</p>
+    <footer>
+      <button type="button" data-action="closeDialog">Cancel</button>
+      <button type="button" data-action="confirmWipe">Wipe!</button>
     </footer>
   </dialog>
   <dialog id="help">

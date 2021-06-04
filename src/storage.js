@@ -131,3 +131,11 @@ export async function addMissingCities(ids) {
       .map(id => ({ id, attempts: [], history: [], lastPlayed: null, added, difficulty: computeCityDifficulty(deserializeCity(id)) }))
   );
 }
+
+/**
+ * Wipes all the cities' data
+ * @returns {Promise}
+ */
+export function wipeData() {
+  return performOnStore('cities', sotre => sotre.clear(), 'readwrite');
+}

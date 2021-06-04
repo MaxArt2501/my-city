@@ -32,6 +32,8 @@ type GameAction =
   | 'help'
   | 'export'
   | 'import'
+  | 'wipe'
+  | 'confirmWipe'
   | 'settings'
   | 'about'
   | 'restart'
