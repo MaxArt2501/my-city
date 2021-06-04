@@ -25,6 +25,7 @@ interface CityData {
   lastPlayed: string;
   history: string[];
   attempts: string[];
+  difficulty: number;
 }
 
 type GameAction =

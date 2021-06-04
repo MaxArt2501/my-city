@@ -282,6 +282,20 @@ nav ul a > div {
 nav ul section {
   pointer-events: none;
 }
+meter {
+  width: 2em;
+}
+::-webkit-meter-bar {
+  border: 0.1em solid;
+  height: 1em;
+  border-radius: 0.15em;
+  background: transparent;
+}
+::-webkit-meter-optimum-value {
+  background: currentColor;
+  padding: 0.05em;
+  background-clip: content-box;
+}
 time.current {
   color: #ec0000;
   background: white;

@@ -472,7 +472,7 @@ function findNextDetermined(marks) {
  * @param {[number[], number[], number[], number[]]} borderHints
  * @param {number[][]} buildings
  * @param {Set<number>[][]} allowedHeights
- * @returns {Generator<[number, number, number]>}
+ * @returns {Generator<[number, number, number, number]>}
  */
 export function* solve(
   borderHints,
@@ -515,7 +515,7 @@ export function* solve(
     while ((detemined = findNextDetermined(allowedHeights))) {
       const [row, column] = detemined;
       const [value] = [...allowedHeights[row][column]];
-      yield placeHeight(row, column, value);
+      yield [...placeHeight(row, column, value), 1];
     }
 
     for (let height = maxSize; height > 0; height--) {
@@ -527,14 +527,14 @@ export function* solve(
         }
         const hasHeight = setRow.filter(set => set.has(height));
         if (hasHeight.length === 1) {
-          yield placeHeight(row, setRow.indexOf(hasHeight[0]), height);
+          yield [...placeHeight(row, setRow.indexOf(hasHeight[0]), height), 2];
         }
       }
       for (let column = 0; column < allowedHeights[0].length; column++) {
         const setColumn = allowedHeights.map(setRow => setRow[column]);
         const hasHeight = setColumn.filter(set => set.has(height));
         if (hasHeight.length === 1) {
-          yield placeHeight(setColumn.indexOf(hasHeight[0]), column, height);
+          yield [...placeHeight(setColumn.indexOf(hasHeight[0]), column, height), 2];
         }
       }
     }
@@ -565,10 +565,10 @@ export function* solve(
       allowedHeights.map(row => row.map(set => new Set(set)))
     );
   });
-  /** @type {Array<Array<[number, number, number]>>} */
+  /** @type {Array<Array<[number, number, number, number]>>} */
   const moveLists = moveGens.map(() => []);
 
-  /** @type {Array<IteratorResult<[number, number, number], void>>} */
+  /** @type {Array<IteratorResult<[number, number, number, number], void>>} */
   let moveResults;
   do {
     moveResults = moveGens.map(gen => gen.next());
@@ -582,9 +582,20 @@ export function* solve(
   const longest = Math.max(...moveLists.map(list => list.length));
   if (longest >= 0) {
     const longestIndex = moveLists.findIndex(({ length }) => length === longest);
-    yield [bestRow, bestCol, alternatives[longestIndex]];
+    yield [bestRow, bestCol, alternatives[longestIndex], 4];
     for (const move of moveLists[longestIndex]) {
       yield move;
     }
   }
+}
+
+/**
+ * Should return a number between 0 and 5
+ * @param {City} city
+ * @returns {number}
+ */
+export function computeCityDifficulty(city) {
+  const moves = Array.from(solve(city.borderHints));
+  const totalSolvingCost = moves.reduce((sum, [, , , cost]) => sum + cost, 0);
+  return totalSolvingCost / (city.width + city.height) - 2;
 }

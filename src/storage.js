@@ -1,5 +1,7 @@
 // @ts-check
 import { VERSION } from './my-city.js';
+import { deserializeCity } from './serialize.js';
+import { computeCityDifficulty } from './utils.js';
 
 /** @type {Promise.<IDBDatabase>} */
 export const dbPromise = new Promise((resolve, reject) => {
@@ -123,5 +125,9 @@ export function batchSaveCities(cities) {
 export async function addMissingCities(ids) {
   const inStore = await getAllCityIds();
   const added = new Date().toISOString();
-  return batchSaveCities(ids.filter(id => !inStore.includes(id)).map(id => ({ id, attempts: [], history: [], lastPlayed: null, added })));
+  return batchSaveCities(
+    ids
+      .filter(id => !inStore.includes(id))
+      .map(id => ({ id, attempts: [], history: [], lastPlayed: null, added, difficulty: computeCityDifficulty(deserializeCity(id)) }))
+  );
 }
