@@ -1,5 +1,5 @@
 // @ts-check
-import { resetControls } from './input.js';
+import { dialogs, resetControls } from './input.js';
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
 import { setMetadata, updateCityData } from './storage.js';
 import {
@@ -8,10 +8,10 @@ import {
   getAllowedHeights,
   getAttemptElapsed,
   getBorderErrors,
-  getCoordinates,
   getFieldErrors,
   isAttemptSuccessful,
   renderForList,
+  solve,
   toISODuration
 } from './utils.js';
 
@@ -238,16 +238,16 @@ export function restartGame() {
 
 /**
  * Should create an element for an item of data, and attach it to the DOM tree
- * @param {HTMLDivElement} cell
+ * @param {number} row
+ * @param {number} column
  * @param {number} value
  */
-export function updateCellValue(cell, value) {
+export function updateCellValue(row, column, value) {
   if (isAttemptSuccessful(currentAttempt)) {
     // A successful attempt can't be updated - only navigated through its
     // history or restarted
     return;
   }
-  const [row, column] = getCoordinates(cell);
   if (markMode) {
     const hasMark = marks[row][column].has(value);
     if (hasMark) {
@@ -393,4 +393,15 @@ export function fillMarks() {
   marks = getAllowedHeights(buildings, currentCity.borderHints);
   updateHistory();
   renderState();
+}
+
+export function placeHint() {
+  /** @type {[number, number, number]} */
+  const hint = solve(currentCity.borderHints, buildings).next().value;
+  if (hint) {
+    updateCellValue(...hint);
+  } else {
+    stopClock();
+    dialogs.noIdea.showModal();
+  }
 }

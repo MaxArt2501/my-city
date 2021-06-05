@@ -3,10 +3,10 @@ import { importData, parseImportData, verifyImportData } from './data-manager.js
 import { initializeCity, leaveCity, renderCity, startClock, stopClock } from './game.js';
 import { dialogs, initializeInput } from './input.js';
 import { deserializeCity, serializeCity } from './serialize.js';
-import { addMissingCities, getAllCities, getCityData } from './storage.js';
-import { formatElapsed, formatSize, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
+import { addMissingCities, batchSaveCities, getAllCities, getCityData } from './storage.js';
+import { computeCityDifficulty, formatElapsed, formatSize, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
 
-export const VERSION = '0.1.0';
+export const VERSION = '0.1.1';
 
 /**
  * Load a JSON file of cities
@@ -46,10 +46,17 @@ async function checkLocationHash() {
 async function showCityList() {
   const cities = await getAllCities();
   const list = document.createDocumentFragment();
+  /** @type {CityData[]} */
+  const updatingCities = [];
   for (const cityData of cities) {
     const city = deserializeCity(cityData.id);
     const item = template.content.cloneNode(true);
-    item.querySelector('span').textContent = `${city.width}×${city.height}`;
+    let { difficulty } = cityData;
+    if (typeof cityData.difficulty !== 'number') {
+      difficulty = computeCityDifficulty(city);
+      updatingCities.push({ ...cityData, difficulty });
+    }
+    item.querySelector('meter').value = difficulty;
 
     const time = item.querySelector('time');
     const attempts = cityData.attempts.slice().sort();
@@ -77,6 +84,9 @@ async function showCityList() {
     cityList.lastChild.remove();
   }
   cityList.appendChild(list);
+  if (updatingCities.length > 0) {
+    batchSaveCities(updatingCities);
+  }
 }
 
 /** @type {HTMLFormElement} */

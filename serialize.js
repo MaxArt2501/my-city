@@ -1,5 +1,6 @@
 // @ts-check
 const B64 = Array.from({ length: 64 }, (_, num) => btoa(String.fromCharCode(num << 2))[0]).join('');
+const triangles = Array.from({ length: 10 }, (_, number) => ((number + 1) * number) >> 1);
 
 /**
  * Serializes a city into an encoded string - new, more compact representation
@@ -8,19 +9,19 @@ const B64 = Array.from({ length: 64 }, (_, num) => btoa(String.fromCharCode(num 
  */
 export function serializeCity(city) {
   const { width, height, borderHints } = city;
+  const rowMult = BigInt(((width * (width + 5)) >> 1) + 1);
+  const colMult = BigInt(((height * (height + 5)) >> 1) + 1);
 
-  const bw = BigInt(width);
-  const bh = BigInt(height);
-  let cityNumber =
-    borderHints.flat().reduce((prod, hint, index) => {
-      const topOrBottom = index % (width + height) < width;
-      return prod * (topOrBottom ? bh : bw) + BigInt(hint);
-    }, 0n) *
-      64n +
-    BigInt(height - 2) * 8n +
-    BigInt(width - 2);
+  let cityNumber = 0n;
+  borderHints[0].forEach(
+    (value, index) => (cityNumber = cityNumber * colMult + BigInt(pairIndex(value, borderHints[2][height - index - 1], height)))
+  );
+  borderHints[1].forEach(
+    (value, index) => (cityNumber = cityNumber * rowMult + BigInt(pairIndex(value, borderHints[3][width - index - 1], width)))
+  );
+  cityNumber = cityNumber * 64n + BigInt(height - 2) * 8n + BigInt(width - 2);
 
-  // Bonus: the first 6 bits (= first base64 character ) contain the city
+  // Bonus: the first 6 bits (= first base64 character) contain the city
   // sizes. Very handy!
   return bigintToBase64(cityNumber);
 }
@@ -34,28 +35,28 @@ export function deserializeCity(string) {
   const sizes = B64.indexOf(string[0]);
   const width = (sizes & 7) + 2;
   const height = (sizes >> 3) + 2;
-  const bw = BigInt(width);
-  const bh = BigInt(height);
+  const rowMult = BigInt(((width * (width + 5)) >> 1) + 1);
+  const colMult = BigInt(((height * (height + 5)) >> 1) + 1);
 
   let hintsNumber = base64ToBigint(string.slice(1));
-  const allHints = [];
-  for (let index = (width + height) * 2; index > 0; index--) {
-    const leftOrRight = index % (width + height) < height;
-    const modulo = leftOrRight ? bh : bw;
-    allHints.unshift(Number(hintsNumber % modulo));
-    hintsNumber /= modulo;
+  /** @type {BorderHints} */
+  const borderHints = [[], [], [], []];
+  for (let count = 0; count < height; count++) {
+    const index = hintsNumber % rowMult;
+    const [right, left] = pairFromIndex(Number(index), width);
+    borderHints[1].unshift(right);
+    borderHints[3].push(left);
+    hintsNumber /= rowMult;
+  }
+  for (let count = 0; count < height; count++) {
+    const index = hintsNumber % colMult;
+    const [top, bottom] = pairFromIndex(Number(index), width);
+    borderHints[0].unshift(top);
+    borderHints[2].push(bottom);
+    hintsNumber /= colMult;
   }
 
-  return {
-    width,
-    height,
-    borderHints: [
-      allHints.slice(0, width),
-      allHints.slice(width, width + height),
-      allHints.slice(width + height, width * 2 + height),
-      allHints.slice(width * 2 + height)
-    ]
-  };
+  return { width, height, borderHints };
 }
 
 /**
@@ -79,6 +80,40 @@ function bigintToBase64(bigint) {
  */
 function base64ToBigint(string) {
   return string.split('').reduceRight((total, char) => total * 64n + BigInt(B64.indexOf(char)), 0n);
+}
+
+/**
+ * Returns the index of a number pair [first, second] such that first + second <= maximum + 1
+ * @param {number} first
+ * @param {number} second
+ * @param {number} maximum
+ * @returns {number}
+ */
+function pairIndex(first, second, maximum) {
+  if (first === 0) {
+    return second;
+  }
+  return triangles[maximum + 1] - triangles[maximum + 2 - first] + second + maximum + 1;
+}
+
+/**
+ * Returns a numeric pair from the given index.
+ * @see pairIndex
+ * @param {number} index
+ * @param {number} maximum
+ * @returns {[number, number]}
+ */
+function pairFromIndex(index, maximum) {
+  if (index <= maximum) {
+    return [0, index];
+  }
+  let first = 1;
+  let second = index - maximum - 1;
+  for (let adder = maximum + 1; adder > 0; first++, second -= adder--) {
+    if (second < adder) {
+      return [first, second];
+    }
+  }
 }
 
 /**
