@@ -6,7 +6,7 @@ import { deserializeCity, serializeCity } from './serialize.js';
 import { addMissingCities, batchSaveCities, getAllCities, getCityData } from './storage.js';
 import { computeCityDifficulty, formatElapsed, formatSize, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
 
-export const VERSION = '0.1.0';
+export const VERSION = '0.1.1';
 
 /**
  * Load a JSON file of cities

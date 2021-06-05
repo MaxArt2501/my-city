@@ -262,7 +262,7 @@ export function formatSize(amount) {
 }
 
 /**
- *
+ * Returns the nth column of a matrix
  * @param {number[][]} buildings
  * @param {number} column
  * @returns {number[]}
