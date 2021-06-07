@@ -8,6 +8,10 @@ import { computeCityDifficulty, formatElapsed, formatSize, getAttemptElapsed, is
 
 export const VERSION = '0.1.1';
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register(location.pathname + 'sw.js', { scope: location.pathname });
+}
+
 /**
  * Load a JSON file of cities
  * @param {string} path
