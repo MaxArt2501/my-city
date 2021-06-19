@@ -41,15 +41,15 @@ self.addEventListener('message', ({ data }) => {
 
 self.addEventListener('fetch', event => {
   event.respondWith(
-    fetch(event.request).then(
-      response => {
-        let responseClone = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseClone);
-        });
-        return response;
-      },
-      () => caches.match(event.request)
+    caches.match(event.request).then(
+      response =>
+        response ||
+        fetch(event.request).then(response => {
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, response.clone());
+          });
+          return response;
+        })
     )
   );
 });
