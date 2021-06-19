@@ -45,6 +45,8 @@ type GameAction =
   | 'solve'
   | 'toggleGameMode'
   | 'toggleSidebar'
+  | 'update'
+  | 'confirmUpdate'
   | 'closeDialog';
 
 interface MyCityMetadata {

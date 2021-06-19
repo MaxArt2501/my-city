@@ -1,4 +1,5 @@
-const CACHE_NAME = 'MyCity_r1';
+const VERSION = '0.1.1';
+const CACHE_NAME = `MyCity_v${VERSION}`;
 
 self.addEventListener('install', event => {
   const path = location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
@@ -30,6 +31,12 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keyList => Promise.all(keyList.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))));
+});
+
+self.addEventListener('message', ({ data }) => {
+  if (data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', event => {

@@ -9,7 +9,48 @@ import { computeCityDifficulty, formatElapsed, formatSize, getAttemptElapsed, is
 export const VERSION = '0.1.1';
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register(location.pathname + 'sw.js', { scope: location.pathname });
+  navigator.serviceWorker.register(location.pathname + 'sw.js', { scope: location.pathname }).then(registration => {
+    /** @param {ServiceWorker} sw */
+    const showUpdate = sw => {
+      document.querySelectorAll('[data-action="update"]').forEach(
+        /** @param {HTMLButtonElement} btn  */
+        btn => (btn.hidden = false)
+      );
+      document.querySelector('[data-action="confirmUpdate"]').addEventListener('pointerdown', () => {
+        sw.postMessage({ action: 'skipWaiting' });
+      });
+    };
+    /** @param {ServiceWorker} sw */
+    const checkNewSW = sw => {
+      if (sw.state === 'installed') {
+        showUpdate(sw);
+      } else {
+        sw.addEventListener('statechange', e => {
+          if (sw.state === 'installed') {
+            showUpdate(sw);
+          }
+        });
+      }
+    };
+
+    if (registration.active) {
+      if (registration.waiting) {
+        checkNewSW(registration.waiting);
+      } else {
+        registration.addEventListener('updatefound', () => {
+          checkNewSW(registration.installing || registration.waiting);
+        });
+      }
+    }
+  });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
 }
 
 /**
