@@ -26,7 +26,7 @@ let cursorRow;
 let cursorColumn;
 
 /** @type {Object.<string, HTMLDialogElement>} */
-export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 'wipeConfirm', 'noIdea'].reduce(
+export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 'wipeConfirm', 'noIdea', 'update'].reduce(
   (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
   {}
 );
@@ -153,7 +153,7 @@ function getCurrentCell() {
  * @param {HTMLButtonElement} button
  */
 function handleAction(button) {
-  const action = button.dataset.action;
+  const { action } = button.dataset;
   switch (action) {
     case 'help':
       dialogs.help.showModal();
@@ -216,6 +216,10 @@ function handleAction(button) {
     case 'hint':
       placeHint();
       dialogs.sidebar.close();
+      break;
+    case 'update':
+      stopClock();
+      dialogs.update.showModal();
       break;
   }
 }

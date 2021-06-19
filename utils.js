@@ -588,7 +588,6 @@ export function* solve(
     }
   }
 }
-window['solve'] = solve;
 
 /**
  * Should return a number between 0 and 5
@@ -600,62 +599,3 @@ export function computeCityDifficulty(city) {
   const totalSolvingCost = moves.reduce((sum, [, , , cost]) => sum + cost, 0);
   return totalSolvingCost / (city.width + city.height) - 2;
 }
-window['computeCityDifficulty'] = computeCityDifficulty;
-
-/**
- *
- * @param {number[][]} buildings
- * @returns {number[][]}
- */
-function shuffleCity(buildings) {
-  /** @type {number[][]} */
-  const newGrid = [];
-  buildings.forEach(row => {
-    const index = Math.floor(Math.random() * (newGrid.length + 1));
-    newGrid.splice(index, 0, row);
-  });
-  /** @type {number[][]} */
-  const newerGrid = newGrid.map(() => []);
-  newGrid[0].forEach((_, col) => {
-    const index = Math.floor(Math.random() * (newerGrid[0].length + 1));
-    newerGrid.forEach((line, row) => line.splice(index, 0, newGrid[row][col]));
-  });
-  return newerGrid;
-}
-
-/**
- *
- * @param {number[][]} buildings
- * @returns {BorderHints}
- */
-function getBorderHints(buildings) {
-  /** @type {BorderHints} */
-  const borderHints = [[], [], [], []];
-  for (let colIndex = 0; colIndex < buildings[0].length; colIndex++) {
-    const column = getColumn(buildings, colIndex);
-    borderHints[0].push(getStairsLength(column));
-    borderHints[2].unshift(getStairsLength(column.slice().reverse()));
-  }
-  for (let rowIndex = 0; rowIndex < buildings.length; rowIndex++) {
-    const row = buildings[rowIndex];
-    borderHints[3].unshift(getStairsLength(row));
-    borderHints[1].push(getStairsLength(row.slice().reverse()));
-  }
-  return borderHints;
-}
-window['getBorderHints'] = getBorderHints;
-
-/**
- *
- * @param {number} width
- * @param {number} height
- * @returns {City}
- */
-export function generateCity(width, height = width) {
-  const maxSize = Math.max(width, height);
-  let buildings = Array.from({ length: height }, (_, row) => Array.from({ length: width }, (_, column) => ((row + column) % maxSize) + 1));
-  buildings = shuffleCity(buildings);
-  console.log(buildings);
-  return { width, height, borderHints: getBorderHints(buildings) };
-}
-window['generateCity'] = generateCity;

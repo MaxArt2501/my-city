@@ -1,4 +1,5 @@
-const CACHE_NAME = 'MyCity_r1';
+const VERSION = '0.2.0';
+const CACHE_NAME = `MyCity_v${VERSION}`;
 
 self.addEventListener('install', event => {
   const path = location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
@@ -32,17 +33,23 @@ self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keyList => Promise.all(keyList.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))));
 });
 
+self.addEventListener('message', ({ data }) => {
+  if (data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', event => {
   event.respondWith(
-    fetch(event.request).then(
-      response => {
-        let responseClone = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseClone);
-        });
-        return response;
-      },
-      () => caches.match(event.request)
+    caches.match(event.request).then(
+      response =>
+        response ||
+        fetch(event.request).then(response => {
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, response.clone());
+          });
+          return response;
+        })
     )
   );
 });
