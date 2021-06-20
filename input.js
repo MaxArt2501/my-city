@@ -52,9 +52,10 @@ export function resetControls() {
 /**
  * @param {PointerEvent} event
  */
-function handleClick({ target }) {
+function handleClick(event) {
+  event.preventDefault();
   /** @type {HTMLDivElement} */
-  const cell = target.closest('.city .cell');
+  const cell = event.target.closest('.city .cell');
   if (cell && isFinite(currentValue)) {
     const value = markMode || getBuildingValue(cell) !== currentValue ? currentValue : 0;
     const [row, column] = getCoordinates(cell);
