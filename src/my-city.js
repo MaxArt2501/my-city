@@ -53,6 +53,13 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+const PROTOCOL = 'web+mycity';
+const HASH_URL_START = `#${PROTOCOL}://`;
+if ('registerProtocolHandler' in navigator) {
+  const path = location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
+  navigator.registerProtocolHandler(PROTOCOL, `${path}#%s`, 'My City puzzle handler');
+}
+
 /**
  * Load a JSON file of cities
  * @param {string} path
@@ -69,7 +76,12 @@ const cityList = document.querySelector('nav ul');
 const template = document.querySelector('#cityTemplate');
 
 async function checkLocationHash() {
-  const hash = location.hash.slice(1).replace(/=/g, '');
+  const unescaped = unescape(location.hash);
+  if (unescaped.startsWith(HASH_URL_START)) {
+    location.replace(`#${unescaped.slice(HASH_URL_START.length)}`);
+    return;
+  }
+  const hash = unescaped.slice(1).replace(/=/g, '');
   if (hash) {
     try {
       const city = deserializeCity(hash);
