@@ -46,6 +46,7 @@ type GameAction =
   | 'toggleGameMode'
   | 'toggleSidebar'
   | 'update'
+  | 'share'
   | 'confirmUpdate'
   | 'closeDialog';
 
@@ -69,6 +70,11 @@ interface ExportData {
 
 type ImportMode = 'merge' | 'replace' | 'cities';
 
+interface QRCodeData {
+  cityId: string;
+  qrCode: Uint16Array[];
+}
+
 /*
  * Reasonable overrides for DOM definitions
  */
@@ -91,15 +97,15 @@ interface MouseEvent {
 /**
  * Should create an element for an item of data, and attach it to the DOM tree
  */
-type ElementFactory = (index: number) => HTMLElement;
+type ElementFactory = (index: number) => HTMLElement | SVGElement;
 
-type ElementUpdater<T> = (element: HTMLElement, dataItem: T, index: number) => void;
+type ElementUpdater = (element: HTMLElement | SVGElement, dataItem: any, index: number) => void;
 
-type ListRenderer = <T>(
-  dataList: Array<T>,
-  existingElements: ArrayLike<HTMLElement>,
+type ListRenderer = (
+  dataList: Array<any>,
+  existingElements: ArrayLike<HTMLElement | SVGElement>,
   elementFactory: ElementFactory,
-  elementUpdater: ElementUpdater<T>
+  elementUpdater: ElementUpdater
 ) => void;
 
 type DirectionArrow = 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft';

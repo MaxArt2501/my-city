@@ -53,7 +53,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-const PROTOCOL = 'web+mycity';
+export const PROTOCOL = 'web+mycity';
 const HASH_URL_START = `#${PROTOCOL}://`;
 if ('registerProtocolHandler' in navigator) {
   const path = location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);

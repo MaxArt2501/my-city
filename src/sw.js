@@ -21,6 +21,7 @@ self.addEventListener('install', event => {
           `${path}my-city_512_maskable.png`,
           `${path}my-city.css`,
           `${path}my-city.js`,
+          `${path}qr-code.js`,
           `${path}serialize.js`,
           `${path}storage.js`,
           `${path}utils.js`

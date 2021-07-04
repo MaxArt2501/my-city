@@ -40,6 +40,7 @@
     <button type="button" class="in-game" data-action="hint">Hint</button>
     <button type="button" class="in-game" data-action="fillMarks">Fill annotations</button>
     <button type="button" class="in-game" data-action="solve">Solve</button>
+    <button type="button" class="in-game" data-action="share">Share city</button>
   </dialog>
   <dialog id="restartConfirm">
     This will interrupt your current game and start a new one.
@@ -262,6 +263,19 @@
       <button type="button" data-action="closeDialog">Later ✋</button>
       <button type="button" data-action="confirmUpdate">Yeah! 👍</button>
     </footer>
+  </dialog>
+  <dialog id="share">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
+      <svg aria-hidden="true">
+        <use href="#close" />
+      </svg>
+    </button>
+    <figure>
+      <svg id="qrCode"></svg>
+      <figcaption>
+        <a></a>
+      </figcaption>
+    </figure>
   </dialog>
   <header>
     <h1><a href="#">My city</a> <time role="timer" id="elapsed" class="in-game"></time></h1>

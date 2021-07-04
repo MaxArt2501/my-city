@@ -566,6 +566,21 @@ aside button {
   background-color: white;
 }
 
+#qrCode {
+  display: block;
+  margin: auto;
+  width: 50vmin;
+  height: 50vmin;
+}
+rect {
+  width: 1px;
+  height: 1px;
+}
+figcaption {
+  text-align: center;
+  margin-block-start: 0.5em;
+}
+
 @media (any-hover: hover) {
   section:not(.complete) .city > .cell:hover {
     background-color: khaki;

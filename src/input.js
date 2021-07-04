@@ -2,6 +2,7 @@
 import { exportData } from './data-manager.js';
 import {
   buildings,
+  cityId,
   currentCity,
   field,
   fillMarks,
@@ -15,8 +16,9 @@ import {
   travelHistory,
   updateCellValue
 } from './game.js';
+import { PROTOCOL } from './my-city.js';
 import { wipeData } from './storage.js';
-import { getBuildingValue, getCoordinates, getElementIndex, shiftValue } from './utils.js';
+import { getBuildingValue, getCoordinates, getElementIndex, renderForList, shiftValue } from './utils.js';
 
 /** @type {number} */
 let currentValue;
@@ -26,7 +28,7 @@ let cursorRow;
 let cursorColumn;
 
 /** @type {Object.<string, HTMLDialogElement>} */
-export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 'wipeConfirm', 'noIdea', 'update'].reduce(
+export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 'wipeConfirm', 'noIdea', 'update', 'share'].reduce(
   (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
   {}
 );
@@ -149,6 +151,45 @@ function getCurrentCell() {
   return field.querySelector(`.city .cell:nth-child(${cellIndex + 1})`);
 }
 
+/** @type {Worker} */
+let qrCodeWorker;
+/** @type {SVGSVGElement} */
+const qrCodeRoot = document.querySelector('#qrCode');
+function showQRCode() {
+  qrCodeRoot.innerHTML = '';
+  if (!qrCodeWorker) {
+    qrCodeWorker = new Worker('./qr-code.js');
+  }
+  qrCodeWorker.addEventListener(
+    'message',
+    /** @param {MessageEvent<QRCodeData>} event */ event => {
+      const qrCode = event.data.qrCode;
+      const darkModules = qrCode.flatMap((line, row) =>
+        Array.from(line).reduce((darkList, cell, column) => {
+          if (cell) {
+            darkList.push([row, column]);
+          }
+          return darkList;
+        }, [])
+      );
+      qrCodeRoot.setAttribute('viewBox', `0 0 ${qrCode.length} ${qrCode.length}`);
+      renderForList(
+        darkModules,
+        [],
+        () => qrCodeRoot.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'rect')),
+        (rect, [row, column]) => {
+          rect.setAttribute('x', column);
+          rect.setAttribute('y', row);
+        }
+      );
+    },
+    { once: true }
+  );
+  qrCodeWorker.postMessage(cityId);
+  const link = `${PROTOCOL}://${cityId}`;
+  Object.assign(dialogs.share.querySelector('a'), { href: link, textContent: link });
+}
+
 /**
  * Handles actions from the sidebar menu
  * @param {HTMLButtonElement} button
@@ -209,6 +250,11 @@ function handleAction(button) {
       break;
     case 'confirmWipe':
       wipeData().then(() => location.reload());
+      break;
+    case 'share':
+      dialogs.sidebar.close();
+      dialogs.share.showModal();
+      showQRCode();
       break;
     case 'fillMarks':
       dialogs.sidebar.close();
