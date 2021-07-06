@@ -1,4 +1,4 @@
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const CACHE_NAME = `MyCity_v${VERSION}`;
 
 self.addEventListener('install', event => {
@@ -21,7 +21,9 @@ self.addEventListener('install', event => {
           `${path}my-city_512_maskable.png`,
           `${path}my-city.css`,
           `${path}my-city.js`,
+          `${path}qr-code.js`,
           `${path}serialize.js`,
+          `${path}share.js`,
           `${path}storage.js`,
           `${path}utils.js`
         ])

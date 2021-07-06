@@ -15,6 +15,7 @@ import {
   travelHistory,
   updateCellValue
 } from './game.js';
+import { scanQRCode, showQRCode, startScan } from './share.js';
 import { wipeData } from './storage.js';
 import { getBuildingValue, getCoordinates, getElementIndex, shiftValue } from './utils.js';
 
@@ -26,7 +27,7 @@ let cursorRow;
 let cursorColumn;
 
 /** @type {Object.<string, HTMLDialogElement>} */
-export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 'wipeConfirm', 'noIdea', 'update'].reduce(
+export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 'wipeConfirm', 'noIdea', 'update', 'share'].reduce(
   (dialogMap, id) => Object.assign(dialogMap, { [id]: document.querySelector(`#${id}`) }),
   {}
 );
@@ -35,10 +36,10 @@ export function initializeInput() {
   field.addEventListener('pointerdown', handleClick);
   document.querySelector('.selectors').addEventListener('pointerdown', handleValueSelect);
   document.addEventListener('keydown', handleKeyDown);
-  document.addEventListener('pointerdown', ({ target }) => {
+  document.addEventListener('pointerdown', ({ target, button }) => {
     /** @type {HTMLButtonElement} */
-    const actionButton = target.closest('button[data-action]');
-    if (actionButton) {
+    const actionButton = target.closest('[data-action]');
+    if (actionButton && button === 0) {
       handleAction(actionButton);
     }
   });
@@ -209,6 +210,18 @@ function handleAction(button) {
       break;
     case 'confirmWipe':
       wipeData().then(() => location.reload());
+      break;
+    case 'share':
+      dialogs.sidebar.close();
+      dialogs.share.showModal();
+      showQRCode();
+      break;
+    case 'scan':
+      dialogs.sidebar.close();
+      scanQRCode();
+      break;
+    case 'retryScan':
+      startScan();
       break;
     case 'fillMarks':
       dialogs.sidebar.close();

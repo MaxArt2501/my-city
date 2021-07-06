@@ -25,7 +25,7 @@ export let marks;
 export let currentCity;
 
 /** @type {string} */
-let cityId;
+export let cityId;
 
 /** @type {GameError[]} */
 let gameErrors;

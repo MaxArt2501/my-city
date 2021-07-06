@@ -4,9 +4,17 @@ import { initializeCity, leaveCity, renderCity, startClock, stopClock } from './
 import { dialogs, initializeInput } from './input.js';
 import { deserializeCity, serializeCity } from './serialize.js';
 import { addMissingCities, batchSaveCities, getAllCities, getCityData } from './storage.js';
-import { computeCityDifficulty, formatElapsed, formatSize, getAttemptElapsed, isAttemptSuccessful, toISODuration } from './utils.js';
+import {
+  computeCityDifficulty,
+  formatElapsed,
+  formatSize,
+  getAttemptElapsed,
+  getCityIdFromURI,
+  isAttemptSuccessful,
+  toISODuration
+} from './utils.js';
 
-export const VERSION = '0.3.0';
+export const VERSION = '0.4.0';
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register(location.pathname + 'sw.js', { scope: location.pathname }).then(registration => {
@@ -53,8 +61,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-const PROTOCOL = 'web+mycity';
-const HASH_URL_START = `#${PROTOCOL}://`;
+export const PROTOCOL = 'web+mycity';
 if ('registerProtocolHandler' in navigator) {
   const path = location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
   navigator.registerProtocolHandler(PROTOCOL, `${path}#%s`, 'My City puzzle handler');
@@ -77,8 +84,9 @@ const template = document.querySelector('#cityTemplate');
 
 async function checkLocationHash() {
   const unescaped = unescape(location.hash);
-  if (unescaped.startsWith(HASH_URL_START)) {
-    location.replace(`#${unescaped.slice(HASH_URL_START.length)}`);
+  const cityId = getCityIdFromURI(unescaped.slice(1));
+  if (cityId) {
+    location.replace(`#${cityId}`);
     return;
   }
   const hash = unescaped.slice(1).replace(/=/g, '');
@@ -221,5 +229,14 @@ document.addEventListener(
   },
   { capture: true }
 );
+
+(window.BarcodeDetector?.getSupportedFormats() ?? Promise.resolve([])).then(supportedFormats => {
+  const canScanQRCodes = supportedFormats.includes('qr_code');
+  document.querySelectorAll('[data-action="scan"]').forEach(
+    /** @param {HTMLElement} element */ element => {
+      element.hidden = !canScanQRCodes;
+    }
+  );
+});
 
 main();
