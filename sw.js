@@ -1,4 +1,4 @@
-const VERSION = '0.4.0';
+const VERSION = '0.4.1';
 const CACHE_NAME = `MyCity_v${VERSION}`;
 
 self.addEventListener('install', event => {
