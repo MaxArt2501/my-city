@@ -69,7 +69,7 @@ resultLink.addEventListener('click', () => {
   scanDialog.close();
 });
 
-const detector = new BarcodeDetector({ formats: ['qr_code'] });
+const detector = window.BarcodeDetector && new BarcodeDetector({ formats: ['qr_code'] });
 
 export function startScan() {
   resultSection.hidden = true;
