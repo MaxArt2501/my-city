@@ -1,5 +1,6 @@
 // @ts-check
 import { buildings, currentCity } from './game.js';
+import { PROTOCOL } from './my-city.js';
 
 /**
  * Renders a data array, creating new elements when needed and removing
@@ -598,4 +599,22 @@ export function computeCityDifficulty(city) {
   const moves = Array.from(solve(city.borderHints));
   const totalSolvingCost = moves.reduce((sum, [, , , cost]) => sum + cost, 0);
   return totalSolvingCost / (city.width + city.height) - 2;
+}
+
+/**
+ * Returns the URI corresponding to the given city ID
+ * @param {string} cityId
+ * @returns {string}
+ */
+export function getCityURI(cityId) {
+  return `${PROTOCOL}://${cityId}`;
+}
+
+/**
+ * Returns the city ID extracted from the given city URI
+ * @param {string} uri
+ * @returns {string}
+ */
+export function getCityIdFromURI(uri) {
+  return uri.startsWith(`${PROTOCOL}://`) && /^[\dA-Za-z/+]+$/.test(uri.slice(PROTOCOL.length + 3)) ? uri.slice(PROTOCOL.length + 3) : null;
 }

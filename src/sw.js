@@ -23,6 +23,7 @@ self.addEventListener('install', event => {
           `${path}my-city.js`,
           `${path}qr-code.js`,
           `${path}serialize.js`,
+          `${path}share.js`,
           `${path}storage.js`,
           `${path}utils.js`
         ])

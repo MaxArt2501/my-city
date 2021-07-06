@@ -47,6 +47,8 @@ type GameAction =
   | 'toggleSidebar'
   | 'update'
   | 'share'
+  | 'scan'
+  | 'retryScan'
   | 'confirmUpdate'
   | 'closeDialog';
 
@@ -93,6 +95,47 @@ interface KeyboardEvent {
 interface MouseEvent {
   readonly target: HTMLElement | null;
 }
+
+interface Point2D {
+  x: number;
+  y: number;
+}
+
+type BarcodeFormat =
+  | 'aztec'
+  | 'code_128'
+  | 'code_39'
+  | 'code_93'
+  | 'codabar'
+  | 'data_matrix'
+  | 'ean_13'
+  | 'ean_8'
+  | 'itf'
+  | 'pdf417'
+  | 'qr_code'
+  | 'unknown'
+  | 'upc_a'
+  | 'upc_e';
+
+interface DetectedBarcode {
+  boundingBox: DOMRectReadOnly;
+  rawValue: string;
+  format: BarcodeFormat;
+  cornerPoints: Array<Point2D>;
+}
+
+interface BarcodeDetectorOptions {
+  formats: BarcodeFormat[];
+}
+interface BarcodeDetector {
+  detect(image: ImageBitmapSource): Promise<Array<DetectedBarcode>>;
+}
+
+declare var BarcodeDetector: {
+  prototype: BarcodeDetector;
+  new (barcodeDetectorOptions?: BarcodeDetectorOptions): BarcodeDetector;
+  getSupportedFormats(): Promise<BarcodeFormat[]>;
+};
 
 /**
  * Should create an element for an item of data, and attach it to the DOM tree
