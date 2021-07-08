@@ -239,4 +239,6 @@ document.addEventListener(
   );
 });
 
+document.querySelector('#version').textContent = `v${VERSION}`;
+
 main();

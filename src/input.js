@@ -161,6 +161,7 @@ function handleAction(button) {
       dialogs.help.showModal();
       break;
     case 'about':
+      dialogs.sidebar.close();
       dialogs.about.showModal();
       break;
     case 'restart':

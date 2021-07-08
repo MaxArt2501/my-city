@@ -72,6 +72,14 @@ body > svg,
   display: none;
 }
 
+small {
+  display: block;
+  color: #777;
+  font-weight: normal;
+  line-height: 1;
+  font-size: 75%;
+}
+
 dialog {
   border: none;
   width: 18em;
@@ -256,7 +264,7 @@ li a {
 
 dialog a,
 dialog a:visited {
-  color: #767676;
+  color: #777;
 }
 
 h2 {
