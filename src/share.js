@@ -95,8 +95,8 @@ export async function initializeCamera(deviceId) {
   if (!deviceId || !cameras.find(cam => cam.deviceId === deviceId)) {
     deviceId = getNextCameraId();
   }
-  const camera = await navigator.mediaDevices.getUserMedia({ video: { deviceId } });
   streamDispose();
+  const camera = await navigator.mediaDevices.getUserMedia({ video: { deviceId } });
   currentDeviceId = deviceId;
   setMetadata(deviceId, 'lastCameraId');
   const [track] = camera.getVideoTracks();
