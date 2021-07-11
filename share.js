@@ -1,6 +1,7 @@
 // @ts-check
 import { cityId } from './game.js';
 import { deserializeCity } from './serialize.js';
+import { getMetadata, setMetadata } from './storage.js';
 import { getCityIdFromURI, getCityURI, renderForList } from './utils.js';
 
 /** @type {Worker} */
@@ -54,26 +55,61 @@ const allowWarning = scanDialog.querySelector('#allowCamera');
 const resultSection = scanDialog.querySelector('#foundCity');
 const scanFooter = scanDialog.querySelector('footer');
 const resultLink = scanFooter.querySelector('a');
+/** @type {HTMLButtonElement} */
+const changeCameraBtn = scanFooter.querySelector('button[data-action="changeCamera"]');
+/** @type {HTMLButtonElement} */
+const retryBtn = scanFooter.querySelector('button[data-action="retryScan"]');
 /** @type {number} */
 let scanPollingIntervalId;
 
-scanDialog.addEventListener('close', () => {
-  const mediaSource = video.srcObject;
-  if (mediaSource && 'getTracks' in mediaSource) {
-    mediaSource.getTracks().forEach(track => track.stop());
-    video.srcObject = null;
-    clearInterval(scanPollingIntervalId);
-  }
-});
+scanDialog.addEventListener('close', streamDispose);
 resultLink.addEventListener('click', () => {
   scanDialog.close();
 });
 
 const detector = window.BarcodeDetector && new BarcodeDetector({ formats: ['qr_code'] });
+/** @type {MediaDeviceInfo[]} */
+let cameras;
+/** @type {string} */
+let currentDeviceId;
+
+function streamDispose() {
+  const stream = video.srcObject;
+  if (stream && 'getTracks' in stream) {
+    stream.getTracks().forEach(track => track.stop());
+    video.srcObject = null;
+    clearInterval(scanPollingIntervalId);
+  }
+}
+
+function getNextCameraId() {
+  return cameras[(cameras.findIndex(cam => cam.deviceId === currentDeviceId) + 1) % cameras.length].deviceId;
+}
+
+/**
+ * Requests and initialize the device with the given id
+ * @param {string} [deviceId]
+ * @returns {Promise<MediaStream>}
+ */
+export async function initializeCamera(deviceId) {
+  if (!deviceId || !cameras.find(cam => cam.deviceId === deviceId)) {
+    deviceId = getNextCameraId();
+  }
+  const camera = await navigator.mediaDevices.getUserMedia({ video: { deviceId } });
+  streamDispose();
+  currentDeviceId = deviceId;
+  setMetadata(deviceId, 'lastCameraId');
+  const [track] = camera.getVideoTracks();
+  const { aspectRatio } = track.getSettings();
+  video.style.height = `${video.clientWidth / aspectRatio}px`;
+  video.srcObject = camera;
+  startScan();
+  return camera;
+}
 
 export function startScan() {
-  resultSection.hidden = true;
-  scanFooter.hidden = true;
+  [resultSection, resultLink, retryBtn].forEach(el => (el.hidden = true));
+  changeCameraBtn.hidden = cameras.length < 2;
 
   video.play();
   const setupPolling = () => {
@@ -84,8 +120,8 @@ export function startScan() {
         if (cityId) {
           clearInterval(scanPollingIntervalId);
           video.pause();
-          resultSection.hidden = false;
-          scanFooter.hidden = false;
+          [resultSection, resultLink, retryBtn].forEach(el => (el.hidden = false));
+          changeCameraBtn.hidden = true;
           resultLink.href = `#${cityId}`;
           const city = deserializeCity(cityId);
           resultSection.querySelector('output').textContent = `${cityId} (${city.width}×${city.height})`;
@@ -103,10 +139,19 @@ export function startScan() {
 export async function scanQRCode() {
   scanDialog.showModal();
 
-  /** @type {MediaStream} */
-  let cam;
+  if (!cameras) {
+    try {
+      cameras = (await navigator.mediaDevices.enumerateDevices()).filter(device => device.kind === 'videoinput');
+    } catch (error) {
+      console.error(error, error.trace);
+      scanDialog.close();
+      return;
+    }
+  }
+
+  changeCameraBtn.hidden = cameras.length < 2;
   try {
-    cam = await navigator.mediaDevices.getUserMedia({ video: true });
+    await initializeCamera(currentDeviceId || (await getMetadata('lastCameraId')));
   } catch (error) {
     console.error(error, error.trace);
     scanDialog.close();
@@ -114,10 +159,4 @@ export async function scanQRCode() {
   }
 
   allowWarning.hidden = true;
-  const [track] = cam.getVideoTracks();
-  const { aspectRatio } = track.getSettings();
-  video.style.height = `${video.clientWidth / aspectRatio}px`;
-  video.srcObject = cam;
-
-  startScan();
 }

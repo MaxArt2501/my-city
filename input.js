@@ -15,7 +15,7 @@ import {
   travelHistory,
   updateCellValue
 } from './game.js';
-import { scanQRCode, showQRCode, startScan } from './share.js';
+import { initializeCamera, scanQRCode, showQRCode, startScan } from './share.js';
 import { wipeData } from './storage.js';
 import { getBuildingValue, getCoordinates, getElementIndex, shiftValue } from './utils.js';
 
@@ -161,6 +161,7 @@ function handleAction(button) {
       dialogs.help.showModal();
       break;
     case 'about':
+      dialogs.sidebar.close();
       dialogs.about.showModal();
       break;
     case 'restart':
@@ -222,6 +223,9 @@ function handleAction(button) {
       break;
     case 'retryScan':
       startScan();
+      break;
+    case 'changeCamera':
+      initializeCamera();
       break;
     case 'fillMarks':
       dialogs.sidebar.close();
