@@ -612,7 +612,7 @@ dialog#scan video {
 dialog#scan p {
   margin-block-start: 0;
 }
-dialog#scan [action='changeCamera'] {
+dialog#scan [data-action='changeCamera'] {
   margin: auto;
 }
 
