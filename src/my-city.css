@@ -612,6 +612,9 @@ dialog#scan video {
 dialog#scan p {
   margin-block-start: 0;
 }
+dialog#scan [action='changeCamera'] {
+  margin: auto;
+}
 
 @media (any-hover: hover) {
   section:not(.complete) .city > .cell:hover {

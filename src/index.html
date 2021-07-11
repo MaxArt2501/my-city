@@ -1,330 +1,347 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="teal" />
-    <meta name="description" content="Web implementation of the logic puzzle 'La mia città' by Giogio Dendi" />
-    <title>My City</title>
-    <link rel="icon" type="image/png" href="favicon.png" sizes="64x64" />
-    <link rel="stylesheet" href="my-city.css" />
-    <link rel="manifest" href="manifest.json" />
-    <link rel="canonical" href="https://maxart2501.github.io/my-city/" />
-    <link rel="apple-touch-icon" href="my-city_192.png" />
-  </head>
 
-  <body>
-    <svg>
-      <symbol id="close" viewBox="0 0 24 24">
-        <path d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
-      </symbol>
-    </svg>
-    <dialog id="sidebar">
-      <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
-        <svg aria-hidden="true">
-          <use href="#close" />
-        </svg>
-      </button>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="teal" />
+  <meta name="description" content="Web implementation of the logic puzzle 'La mia città' by Giogio Dendi" />
+  <title>My City</title>
+  <link rel="icon" type="image/png" href="favicon.png" sizes="64x64" />
+  <link rel="stylesheet" href="my-city.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="canonical" href="https://maxart2501.github.io/my-city/" />
+  <link rel="apple-touch-icon" href="my-city_192.png" />
+</head>
 
-      <button type="button" class="in-home" data-action="help">Help</button>
-      <button type="button" class="in-home" data-action="export">Export data</button>
-      <button type="button" class="in-home" data-action="import">Import data</button>
-      <button type="button" class="in-home" data-action="scan" hidden>QR code import</button>
-      <button type="button" class="in-home" data-action="wipe">Wipe data</button>
-      <button type="button" class="in-home" data-action="settings">Settings</button>
-      <button type="button" class="in-home" data-action="about">About</button>
+<body>
+  <svg>
+    <symbol id="close" viewBox="0 0 24 24">
+      <path
+        d="M18.36 19.78L12 13.41l-6.36 6.37-1.42-1.42L10.59 12 4.22 5.64l1.42-1.42L12 10.59l6.36-6.36 1.41 1.41L13.41 12l6.36 6.36z" />
+    </symbol>
+  </svg>
+  <dialog id="sidebar">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
+      <svg aria-hidden="true">
+        <use href="#close" />
+      </svg>
+    </button>
 
-      <button type="button" class="in-game" data-action="restart">Restart game</button>
-      <button type="button" class="in-game" data-action="hint">Hint</button>
-      <button type="button" class="in-game" data-action="fillMarks">Fill annotations</button>
-      <button type="button" class="in-game" data-action="solve">Solve</button>
-      <button type="button" class="in-game" data-action="share">Share city</button>
-    </dialog>
-    <dialog id="restartConfirm">
-      This will interrupt your current game and start a new one. The current game will still be stored in the city's history. Restart the game?
-      <footer>
-        <button type="button" data-action="closeDialog">Cancel</button>
-        <button type="button" data-action="confirmRestart">Restart</button>
-      </footer>
-    </dialog>
-    <dialog id="wipeConfirm">
-      Are you sure you want to wipe all your local data?
-      <p>Maybe you'd like to <button type="button" data-action="export">do a backup</button> first. Just in case.</p>
-      <footer>
-        <button type="button" data-action="closeDialog">Cancel</button>
-        <button type="button" data-action="confirmWipe">Wipe!</button>
-      </footer>
-    </dialog>
-    <dialog id="help">
-      <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
-        <svg aria-hidden="true">
-          <use href="#close" />
-        </svg>
-      </button>
-      <h2>How to play with My City</h2>
-      <p>This is my city. While its layout is quite boring - a simple orthogonal grid - it doesn't mean it's not possible to do anything fun with it.</p>
-      <p>
-        You should know that the height of each building can vary from <b>1</b> to <b><i>n</i></b
-        >, where <b><i>n</i></b> is the largest size of the layout grid. For example, in a 4&times;4 city, buildings can be <b>1</b>, <b>2</b>, <b>3</b>, or <b>4</b> stories tall.
-      </p>
-      <p>
-        You should also be aware that in each row, and each column of the grid, there are no buildings with the same height. What I can tell you is how many buildings I can see
-        from the some - but maybe not all! - sides of the grid.
-      </p>
-      <section aria-label="City of 4 rows, 4 columns. Hints on top: 3, 2, void, 3; hints on right: 2, 3, void, 2; hints on bottom: void, 2, void, 2; hints on left: 3, void, 2, 1">
-        <div class="top hints">
-          <div class="cell"><span class="value">3</span></div>
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">3</span></div>
-        </div>
-        <div class="right hints">
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"><span class="value">3</span></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">2</span></div>
-        </div>
-        <div class="bottom hints">
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"></div>
-        </div>
-        <div class="left hints">
-          <div class="cell"><span class="value">1</span></div>
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">3</span></div>
-        </div>
-        <div class="city" style="--city-width: 4; --city-height: 4">
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-        </div>
-      </section>
-      <p>
-        Give the hints above, you should know for certain that in the first column of the last row there's a building <b>4</b>-story tall, because from its West side you can see
-        only one building. But you should also know that a <b>4</b>-story tall house is located on the first row and third column, because it's the only place it could be for that
-        row: otherwise one of the other hints from the North would report <b>1</b>.
-      </p>
-      <p>
-        The other <b>4</b>-story building can be similarly placed. Now, if we consider the fourth row, it's also clear that there's a <b>3</b>-story house in the last column,
-        because you can see only <b>2</b> buildings in that row from the East.
-      </p>
-      <section
-        aria-label="City of 4 rows, 4 columns. Same hints as the previous example.
-      Buildings tall 4 are placed on the 1st row, 3rd column; 2nd row, 2nd column; 3rd row, 4th column; 4th row, 1st column.
-      A building tall 3 is placed on 4th row, 4th column"
-      >
-        <div class="top hints">
-          <div class="cell"><span class="value">3</span></div>
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">3</span></div>
-        </div>
-        <div class="right hints">
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"><span class="value">3</span></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">2</span></div>
-        </div>
-        <div class="bottom hints">
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"></div>
-        </div>
-        <div class="left hints">
-          <div class="cell"><span class="value">1</span></div>
-          <div class="cell"><span class="value">2</span></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">3</span></div>
-        </div>
-        <div class="city" style="--city-width: 4; --city-height: 4">
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">4</span></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">4</span></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">4</span></div>
-          <div class="cell"><span class="value">4</span></div>
-          <div class="cell"></div>
-          <div class="cell"></div>
-          <div class="cell"><span class="value">3</span></div>
-        </div>
-      </section>
-      <p>&hellip; You've probably got the point. So, how tall are the buildings of my city?</p>
-      <h2>Commands</h2>
-      <ul>
-        <li>Click on the number buttons or press a digit key to select the current height;</li>
-        <li>click on city cell or press <kbd>Enter</kbd> or <kbd>Space</kbd> to set the height of the city cell to the current one;</li>
-        <li>click on the <b>#</b>/🔢 button or press <kbd>M</kbd> to switch between height and annotation mode;</li>
-        <li>click on the ⬅ button or press <kbd>Ctrl</kbd>+<kbd>Z</kbd> to undo the previous move;</li>
-        <li>click on the ➡ button or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> or <kbd>Ctrl</kbd>+<kbd>Y</kbd> to redo the next move;</li>
-        <li>press <kbd>Delete</kbd> or <kbd>Backspace</kbd> to remove the corresponding city height/annotation.</li>
-      </ul>
-    </dialog>
-    <dialog id="about">
-      <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
-        <svg aria-hidden="true">
-          <use href="#close" />
-        </svg>
-      </button>
-      <h2>My City <small id="version"></small></h2>
-      <p>Made with JavaScript, HTML, CSS and <span aria-label="love">❤</span> by Massimo Artizzu.</p>
-      <p>
-        <a rel="noopener" href="https://github.com/MaxArt2501">GitHub</a>
-        &middot;
-        <a rel="noopener" href="https://twitter.com/MaxArt2501">Twitter</a>
-        &middot;
-        <a rel="noopener" href="https://dev.to/MaxArt2501">dev.to</a>
-      </p>
-      <p>Original concept by <a rel="noopener" href="https://www.giorgiodendi.com/citta/">Giorgio Dendi</a> (in Italian).</p>
-      <p>
-        <a rel="noopener" href="https://github.com/MaxArt2501/my-city">Source code</a> and
-        <a rel="noopener" href="https://github.com/MaxArt2501/my-city/blob/main/LICENSE">license</a>.
-      </p>
-    </dialog>
-    <dialog id="import">
-      <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
-        <svg aria-hidden="true">
-          <use href="#close" />
-        </svg>
-      </button>
-      <h2>Import Data</h2>
-      <form id="importForm">
-        <label class="file-input">
-          <input type="file" id="dataFile" required />
-          Select a file
-        </label>
-        <div id="importInfo" aria-live="polite"></div>
-        <div>Import mode:</div>
-        <div role="radiogroup">
-          <input type="radio" name="importMode" id="importMode_merge" value="merge" checked />
-          <label for="importMode_merge">Merge with existing data</label>
-          <input type="radio" name="importMode" id="importMode_replace" value="replace" />
-          <label for="importMode_replace">Replace existing data</label>
-          <input type="radio" name="importMode" id="importMode_cities" value="cities" />
-          <label for="importMode_cities">Import missing cities only</label>
-        </div>
-        <footer>
-          <button type="submit" data-action="doImport">Import</button>
-        </footer>
-      </form>
-    </dialog>
-    <dialog id="noIdea">
-      <h4>I have no idea of what the next move could be, sorry 🤷‍♂️</h4>
-      <p>Maybe you've made some mistakes already. Or maybe I'm not smart enough (totally possible!).</p>
-      <footer><button type="button" data-action="closeDialog">Okay&hellip; 😢</button></footer>
-    </dialog>
-    <dialog id="update">
-      <p>There's a new version of the game available! Would you like to refresh the page so it could be updated?</p>
-      <footer>
-        <button type="button" data-action="closeDialog">Later ✋</button>
-        <button type="button" data-action="confirmUpdate">Yeah! 👍</button>
-      </footer>
-    </dialog>
-    <dialog id="share">
-      <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
-        <svg aria-hidden="true">
-          <use href="#close" />
-        </svg>
-      </button>
-      <figure>
-        <svg id="qrCode"></svg>
-        <figcaption>
-          <a></a>
-        </figcaption>
-      </figure>
-    </dialog>
-    <dialog id="scan">
-      <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
-        <svg aria-hidden="true">
-          <use href="#close" />
-        </svg>
-      </button>
-      <p id="allowCamera">Please allow camera usage for this application</p>
-      <p>Focus on the QR Code to scan</p>
-      <video></video>
-      <div id="foundCity" hidden>Found city <output></output></div>
-      <footer hidden>
-        <button type="button" data-action="retryScan">Retry</button>
-        <a class="button-link">Awesome! 👍</a>
-      </footer>
-    </dialog>
-    <header>
-      <h1><a href="#">My city</a> <time role="timer" id="elapsed" class="in-game"></time></h1>
-      <div role="toolbar">
-        <button type="button" data-action="update" hidden aria-label="Update the game" title="Update the game">
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path
-              d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79s7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58s9.14-3.47 12.65 0L21 3v7.12zM12.5 8v4.25l3.5 2.08-.72 1.21L11 13V8h1.5z"
-            />
-          </svg>
-        </button>
-        <button type="button" data-action="undo" class="in-game" aria-label="Undo the previous move" title="Undo the previous move">
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
-          </svg>
-        </button>
-        <button type="button" data-action="redo" class="in-game" aria-label="Redo the next move" title="Redo the next move">
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16a8.002 8.002 0 0 1 7.6-5.5c1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
-          </svg>
-        </button>
-        <button type="button" data-action="toggleSidebar" aria-label="Open the main menu" title="Open the main menu">
-          <svg aria-hidden="true" viewBox="0 0 16 16">
-            <path d="M9.5 13a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-          </svg>
-        </button>
+    <button type="button" class="in-home" data-action="help">Help</button>
+    <button type="button" class="in-home" data-action="export">Export data</button>
+    <button type="button" class="in-home" data-action="import">Import data</button>
+    <button type="button" class="in-home" data-action="scan" hidden>QR code import</button>
+    <button type="button" class="in-home" data-action="wipe">Wipe data</button>
+    <button type="button" class="in-home" data-action="settings">Settings</button>
+    <button type="button" class="in-home" data-action="about">About</button>
+
+    <button type="button" class="in-game" data-action="restart">Restart game</button>
+    <button type="button" class="in-game" data-action="hint">Hint</button>
+    <button type="button" class="in-game" data-action="fillMarks">Fill annotations</button>
+    <button type="button" class="in-game" data-action="solve">Solve</button>
+    <button type="button" class="in-game" data-action="share">Share city</button>
+  </dialog>
+  <dialog id="restartConfirm">
+    This will interrupt your current game and start a new one. The current game will still be stored in the city's
+    history. Restart the game?
+    <footer>
+      <button type="button" data-action="closeDialog">Cancel</button>
+      <button type="button" data-action="confirmRestart">Restart</button>
+    </footer>
+  </dialog>
+  <dialog id="wipeConfirm">
+    Are you sure you want to wipe all your local data?
+    <p>Maybe you'd like to <button type="button" data-action="export">do a backup</button> first. Just in case.</p>
+    <footer>
+      <button type="button" data-action="closeDialog">Cancel</button>
+      <button type="button" data-action="confirmWipe">Wipe!</button>
+    </footer>
+  </dialog>
+  <dialog id="help">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
+      <svg aria-hidden="true">
+        <use href="#close" />
+      </svg>
+    </button>
+    <h2>How to play with My City</h2>
+    <p>This is my city. While its layout is quite boring - a simple orthogonal grid - it doesn't mean it's not possible
+      to do anything fun with it.</p>
+    <p>
+      You should know that the height of each building can vary from <b>1</b> to <b><i>n</i></b>, where <b><i>n</i></b>
+      is the largest size of the layout grid. For example, in a 4&times;4 city, buildings can be <b>1</b>, <b>2</b>,
+      <b>3</b>, or <b>4</b> stories tall.
+    </p>
+    <p>
+      You should also be aware that in each row, and each column of the grid, there are no buildings with the same
+      height. What I can tell you is how many buildings I can see
+      from the some - but maybe not all! - sides of the grid.
+    </p>
+    <section
+      aria-label="City of 4 rows, 4 columns. Hints on top: 3, 2, void, 3; hints on right: 2, 3, void, 2; hints on bottom: void, 2, void, 2; hints on left: 3, void, 2, 1">
+      <div class="top hints">
+        <div class="cell"><span class="value">3</span></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
       </div>
-    </header>
-    <nav class="in-home">
-      <ul></ul>
-    </nav>
-    <section id="gameField" class="in-game"></section>
-    <aside role="toolbar" class="in-game">
-      <button type="button" data-action="toggleGameMode"></button>
-      <div class="selectors"></div>
-    </aside>
-    <template id="fieldTemplate">
-      <div class="top hints"></div>
-      <div class="right hints"></div>
-      <div class="bottom hints"></div>
-      <div class="left hints"></div>
-      <div class="city"></div>
-    </template>
-    <template id="cityTemplate">
-      <li>
-        <a>
-          <div>
-            <meter min="0" max="5"></meter>
-            <time></time>
-          </div>
-          <section></section>
-        </a>
-      </li>
-    </template>
-    <script src="my-city.js" type="module"></script>
-  </body>
+      <div class="right hints">
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"><span class="value">3</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">2</span></div>
+      </div>
+      <div class="bottom hints">
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+      </div>
+      <div class="left hints">
+        <div class="cell"><span class="value">1</span></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
+      </div>
+      <div class="city" style="--city-width: 4; --city-height: 4">
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+      </div>
+    </section>
+    <p>
+      Give the hints above, you should know for certain that in the first column of the last row there's a building
+      <b>4</b>-story tall, because from its West side you can see
+      only one building. But you should also know that a <b>4</b>-story tall house is located on the first row and third
+      column, because it's the only place it could be for that
+      row: otherwise one of the other hints from the North would report <b>1</b>.
+    </p>
+    <p>
+      The other <b>4</b>-story building can be similarly placed. Now, if we consider the fourth row, it's also clear
+      that there's a <b>3</b>-story house in the last column,
+      because you can see only <b>2</b> buildings in that row from the East.
+    </p>
+    <section aria-label="City of 4 rows, 4 columns. Same hints as the previous example.
+      Buildings tall 4 are placed on the 1st row, 3rd column; 2nd row, 2nd column; 3rd row, 4th column; 4th row, 1st column.
+      A building tall 3 is placed on 4th row, 4th column">
+      <div class="top hints">
+        <div class="cell"><span class="value">3</span></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
+      </div>
+      <div class="right hints">
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"><span class="value">3</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">2</span></div>
+      </div>
+      <div class="bottom hints">
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+      </div>
+      <div class="left hints">
+        <div class="cell"><span class="value">1</span></div>
+        <div class="cell"><span class="value">2</span></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
+      </div>
+      <div class="city" style="--city-width: 4; --city-height: 4">
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">4</span></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">4</span></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">4</span></div>
+        <div class="cell"><span class="value">4</span></div>
+        <div class="cell"></div>
+        <div class="cell"></div>
+        <div class="cell"><span class="value">3</span></div>
+      </div>
+    </section>
+    <p>&hellip; You've probably got the point. So, how tall are the buildings of my city?</p>
+    <h2>Commands</h2>
+    <ul>
+      <li>Click on the number buttons or press a digit key to select the current height;</li>
+      <li>click on city cell or press <kbd>Enter</kbd> or <kbd>Space</kbd> to set the height of the city cell to the
+        current one;</li>
+      <li>click on the <b>#</b>/🔢 button or press <kbd>M</kbd> to switch between height and annotation mode;</li>
+      <li>click on the ⬅ button or press <kbd>Ctrl</kbd>+<kbd>Z</kbd> to undo the previous move;</li>
+      <li>click on the ➡ button or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> or <kbd>Ctrl</kbd>+<kbd>Y</kbd>
+        to redo the next move;</li>
+      <li>press <kbd>Delete</kbd> or <kbd>Backspace</kbd> to remove the corresponding city height/annotation.</li>
+    </ul>
+  </dialog>
+  <dialog id="about">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
+      <svg aria-hidden="true">
+        <use href="#close" />
+      </svg>
+    </button>
+    <h2>My City <small id="version"></small></h2>
+    <p>Made with JavaScript, HTML, CSS and <span aria-label="love">❤</span> by Massimo Artizzu.</p>
+    <p>
+      <a rel="noopener" href="https://github.com/MaxArt2501">GitHub</a>
+      &middot;
+      <a rel="noopener" href="https://twitter.com/MaxArt2501">Twitter</a>
+      &middot;
+      <a rel="noopener" href="https://dev.to/MaxArt2501">dev.to</a>
+    </p>
+    <p>Original concept by <a rel="noopener" href="https://www.giorgiodendi.com/citta/">Giorgio Dendi</a> (in Italian).
+    </p>
+    <p>
+      <a rel="noopener" href="https://github.com/MaxArt2501/my-city">Source code</a> and
+      <a rel="noopener" href="https://github.com/MaxArt2501/my-city/blob/main/LICENSE">license</a>.
+    </p>
+  </dialog>
+  <dialog id="import">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
+      <svg aria-hidden="true">
+        <use href="#close" />
+      </svg>
+    </button>
+    <h2>Import Data</h2>
+    <form id="importForm">
+      <label class="file-input">
+        <input type="file" id="dataFile" required />
+        Select a file
+      </label>
+      <div id="importInfo" aria-live="polite"></div>
+      <div>Import mode:</div>
+      <div role="radiogroup">
+        <input type="radio" name="importMode" id="importMode_merge" value="merge" checked />
+        <label for="importMode_merge">Merge with existing data</label>
+        <input type="radio" name="importMode" id="importMode_replace" value="replace" />
+        <label for="importMode_replace">Replace existing data</label>
+        <input type="radio" name="importMode" id="importMode_cities" value="cities" />
+        <label for="importMode_cities">Import missing cities only</label>
+      </div>
+      <footer>
+        <button type="submit" data-action="doImport">Import</button>
+      </footer>
+    </form>
+  </dialog>
+  <dialog id="noIdea">
+    <h4>I have no idea of what the next move could be, sorry 🤷‍♂️</h4>
+    <p>Maybe you've made some mistakes already. Or maybe I'm not smart enough (totally possible!).</p>
+    <footer><button type="button" data-action="closeDialog">Okay&hellip; 😢</button></footer>
+  </dialog>
+  <dialog id="update">
+    <p>There's a new version of the game available! Would you like to refresh the page so it could be updated?</p>
+    <footer>
+      <button type="button" data-action="closeDialog">Later ✋</button>
+      <button type="button" data-action="confirmUpdate">Yeah! 👍</button>
+    </footer>
+  </dialog>
+  <dialog id="share">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
+      <svg aria-hidden="true">
+        <use href="#close" />
+      </svg>
+    </button>
+    <figure>
+      <svg id="qrCode"></svg>
+      <figcaption>
+        <a></a>
+      </figcaption>
+    </figure>
+  </dialog>
+  <dialog id="scan">
+    <button type="button" class="close-dialog" data-action="closeDialog" aria-label="Close">
+      <svg aria-hidden="true">
+        <use href="#close" />
+      </svg>
+    </button>
+    <p id="allowCamera">Please allow camera usage for this application</p>
+    <p>Focus on the QR Code to scan</p>
+    <video></video>
+    <div id="foundCity" hidden>Found city <output></output></div>
+    <footer>
+      <button type="button" data-action="changeCamera" hidden>Change camera</button>
+      <button type="button" data-action="retryScan" hidden>Retry</button>
+      <a class="button-link" hidden>Awesome! 👍</a>
+    </footer>
+  </dialog>
+  <header>
+    <h1><a href="#">My city</a> <time role="timer" id="elapsed" class="in-game"></time></h1>
+    <div role="toolbar">
+      <button type="button" data-action="update" hidden aria-label="Update the game" title="Update the game">
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79s7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58s9.14-3.47 12.65 0L21 3v7.12zM12.5 8v4.25l3.5 2.08-.72 1.21L11 13V8h1.5z" />
+        </svg>
+      </button>
+      <button type="button" data-action="undo" class="in-game" aria-label="Undo the previous move"
+        title="Undo the previous move">
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
+        </svg>
+      </button>
+      <button type="button" data-action="redo" class="in-game" aria-label="Redo the next move"
+        title="Redo the next move">
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16a8.002 8.002 0 0 1 7.6-5.5c1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
+        </svg>
+      </button>
+      <button type="button" data-action="toggleSidebar" aria-label="Open the main menu" title="Open the main menu">
+        <svg aria-hidden="true" viewBox="0 0 16 16">
+          <path
+            d="M9.5 13a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+        </svg>
+      </button>
+    </div>
+  </header>
+  <nav class="in-home">
+    <ul></ul>
+  </nav>
+  <section id="gameField" class="in-game"></section>
+  <aside role="toolbar" class="in-game">
+    <button type="button" data-action="toggleGameMode"></button>
+    <div class="selectors"></div>
+  </aside>
+  <template id="fieldTemplate">
+    <div class="top hints"></div>
+    <div class="right hints"></div>
+    <div class="bottom hints"></div>
+    <div class="left hints"></div>
+    <div class="city"></div>
+  </template>
+  <template id="cityTemplate">
+    <li>
+      <a>
+        <div>
+          <meter min="0" max="5"></meter>
+          <time></time>
+        </div>
+        <section></section>
+      </a>
+    </li>
+  </template>
+  <script src="my-city.js" type="module"></script>
+</body>
+
 </html>

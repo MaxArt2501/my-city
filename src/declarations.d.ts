@@ -49,12 +49,14 @@ type GameAction =
   | 'share'
   | 'scan'
   | 'retryScan'
+  | 'changeCamera'
   | 'confirmUpdate'
   | 'closeDialog';
 
 interface MyCityMetadata {
   version: string;
   lastCity: string;
+  lastCameraId: string;
 }
 
 interface MyCityDatabase {
