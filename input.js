@@ -34,13 +34,20 @@ export const dialogs = ['sidebar', 'restartConfirm', 'help', 'about', 'import', 
 
 export function initializeInput() {
   field.addEventListener('pointerdown', handleClick);
-  document.querySelector('.selectors').addEventListener('pointerdown', handleValueSelect);
   document.addEventListener('keydown', handleKeyDown);
-  document.addEventListener('pointerdown', ({ target, button }) => {
+  document.addEventListener('click', ({ target, button }) => {
+    if (button !== 0) {
+      return;
+    }
     /** @type {HTMLButtonElement} */
     const actionButton = target.closest('[data-action]');
-    if (actionButton && button === 0) {
-      handleAction(actionButton);
+    if (actionButton) {
+      return handleAction(actionButton);
+    }
+    /** @type {HTMLButtonElement} */
+    const valueButton = target.closest('.selectors button');
+    if (valueButton) {
+      return setCurrentValue(getElementIndex(valueButton) + 1);
     }
   });
 }
@@ -99,17 +106,6 @@ function handleKeyDown({ key, ctrlKey, shiftKey }) {
   } else if ((key.toLowerCase() === 'z' && ctrlKey && shiftKey) || (key.toLowerCase() === 'y' && ctrlKey)) {
     travelHistory(-1);
   }
-}
-
-/**
- * @param {PointerEvent} event
- */
-function handleValueSelect({ target }) {
-  const button = target.closest('button');
-  if (!button) {
-    return;
-  }
-  setCurrentValue(getElementIndex(button) + 1);
 }
 
 /**

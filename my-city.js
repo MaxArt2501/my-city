@@ -14,7 +14,7 @@ import {
   toISODuration
 } from './utils.js';
 
-export const VERSION = '0.4.2';
+export const VERSION = '0.4.3';
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register(location.pathname + 'sw.js', { scope: location.pathname }).then(registration => {
