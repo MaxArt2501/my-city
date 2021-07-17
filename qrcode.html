@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple QR-Code generator</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #222;
+      color: white;
+    }
+
+    header {
+      grid-column: 1 / span 2;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Simple QR-Code generator</h1>
+  </header>
+  <form>
+    <label for="content">Content</label>
+    <input type="text" id="content" maxlength="26" pattern="[\x00-\xff]+">
+  </form>
+  <script>
+    var logAntilog = new Uint8Array(256);
+    for (let e = 0, n = .5; e < 256; e++) {
+      n = n > 127 ? ((n * 2) ^ 285) : n * 2;
+      logAntilog[n] = e;
+    }
+    function polMult(poly1, poly2) { }
+    document.querySelector('input').addEventListener('input', () => {
+      //
+    });
+  </script>
+</body>
+
+</html>
