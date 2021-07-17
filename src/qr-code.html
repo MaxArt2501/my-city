@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple QR-Code generator</title>
+  <style>
+    /* @property version {
+      syntax: '<number>';
+      inherits: true;
+      initial-value: 2;
+    } */
+
+    body {
+      font-family: system-ui, sans-serif;
+      display: grid;
+      grid-template-columns: auto 50vw;
+      background: #222;
+      color: white;
+    }
+
+    header {
+      grid-column: 1 / span 2;
+    }
+
+    aside {
+      display: grid;
+      grid-template-columns: repeat(calc(17 + var(--version, 2) * 4), 1fr);
+      grid-auto-rows: calc(50vw / (25 + var(--version, 2) * 4));
+      padding: calc(200vw / (25 + var(--version, 2) * 4));
+      background-color: #fff;
+    }
+
+    .pixel {
+      display: flex;
+      font-size: 75%;
+      justify-content: center;
+      align-items: center;
+      color: #000;
+      /* outline: 1px solid #bbb; */
+    }
+
+    .lit {
+      background-color: #000;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Simple QR-Code generator</h1>
+  </header>
+  <main>
+    <form>
+      <label for="content">Content</label>
+      <input type="text" id="content" maxlength="32" pattern="[\x00-\xff]+">
+    </form>
+    <dl>
+      <dt>Quality level</dt>
+      <dd data-value="quality"></dd>
+      <dt>Data bytes</dt>
+      <dd data-value="data"></dd>
+      <dt>EDC bytes</dt>
+      <dd data-value="edc"></dd>
+      <dt>Mask #</dt>
+      <dd data-value="mask"></dd>
+    </dl>
+  </main>
+  <aside></aside>
+  <script>
+    var antilog = new Uint8Array(256);
+    var log = new Uint8Array(256);
+    for (let exponent = 1, value = 1; exponent < 256; exponent++) {
+      value = value > 127 ? ((value << 1) ^ 285) : value << 1;
+      log[value] = exponent % 255;
+      antilog[exponent % 255] = value;
+    }
+
+    const NUMERIC_RE = /^\d*$/;
+    const ALPHANUMERIC_RE = /^[A-Z\d $%*+\-./:]*$/;
+    const LATIN1_RE = /^[\x00-\xff]*$/;
+    const KANJI_RE = /^[\p{Script_Extensions=Han}\p{Script_Extensions=Hiragana}\p{Script_Extensions=Katakana}]*$/u;
+    function getEncodingMode(string) {
+      if (NUMERIC_RE.test(string)) {
+        return 1;
+      }
+      if (ALPHANUMERIC_RE.test(string)) {
+        return 2;
+      }
+      if (LATIN1_RE.test(string)) {
+        return 4;
+      }
+      if (KANJI_RE.test(string)) {
+        return 8;
+      }
+      return 7;
+    }
+
+    const LENGTH_BITS = [
+      [10, 12, 14],
+      [9, 11, 13],
+      [8, 16, 16],
+      [8, 10, 12]
+    ];
+    function getLengthBits(mode, version) {
+      // ECI mode folds into byte mode
+      const modeIndex = Math.floor(Math.log2(mode));
+      const bitsIndex = version > 26 ? 2 : version > 9 ? 1 : 0;
+      return LENGTH_BITS[modeIndex][bitsIndex];
+    }
+
+    function mul(a, b) {
+      return a && b ? antilog[(log[a] + log[b]) % 255] : 0;
+    }
+    function inverse(num) {
+      return antilog[log[num] * 254 % 255];
+    }
+    function div(a, b) {
+      return antilog[(log[a] + log[b] * 254) % 255];
+    }
+
+    function alphaPoly(poly) {
+      return poly.map(coeff => log[coeff]);
+    }
+    function polyMul(poly1, poly2) {
+      const coeffs = new Uint8Array(poly1.length + poly2.length - 1);
+      for (let index = 0; index < coeffs.length; index++) {
+        let coeff = 0;
+        for (let p1index = 0; p1index <= index; p1index++) {
+          const p2index = index - p1index;
+          coeff ^= mul(poly1[p1index], poly2[p2index]);
+        }
+        coeffs[index] = coeff;
+      }
+      return coeffs;
+    }
+    function polyDiv(dividend, divisor) {
+      const quotient = new Uint8Array(Math.max(0, dividend.length - divisor.length) + 1);
+      let rest = new Uint8Array(dividend);
+      for (let index = 0; index < quotient.length; index++) {
+        if (rest[0]) {
+          const factor = div(rest[0], divisor[0]);
+          const subtr = new Uint8Array(rest.length);
+          subtr.set(polyMul(divisor, [factor]), 0);
+          rest = rest.map((value, idx) => value ^ subtr[idx]).slice(1);
+          quotient[index] = factor;
+        } else {
+          rest = rest.slice(1);
+        }
+      }
+      return { quotient, rest };
+    }
+    function polyRest(dividend, divisor) {
+      const quotientLength = dividend.length - divisor.length + 1;
+      let rest = new Uint8Array(dividend);
+      for (let index = 0; index < quotientLength; index++) {
+        if (rest[0]) {
+          const factor = div(rest[0], divisor[0]);
+          const subtr = new Uint8Array(rest.length);
+          subtr.set(polyMul(divisor, [factor]), 0);
+          rest = rest.map((value, idx) => value ^ subtr[idx]).slice(1);
+        } else {
+          rest = rest.slice(1);
+        }
+      }
+      return rest;
+    }
+
+    var polys = [];
+    // Maximum number of data codewords: 2956 for 40-L
+    for (let i = 0, lastPoly = [1]; i < 34; i++) {
+      lastPoly = polyMul(lastPoly, [1, antilog[i]]);
+      polys.push(lastPoly);
+    }
+
+    // Capacity limits for version-2 QR Codes in byte mode given a correction level
+    const LIMITS = {
+      H: 14,
+      Q: 20,
+      M: 26,
+      L: 32
+    };
+    LIMITS.entries = Object.entries(LIMITS);
+    const EDC_ORDER = 'MLHQ';
+
+    function getErrorLevel(content) {
+      return LIMITS.entries.find(([, maxLength]) => content.length <= maxLength)[0];
+    }
+    function getByteData(content, dataCodewords) {
+      const data = new Uint8Array(dataCodewords);
+      const mode = 4; // Byte mode
+      const lengthBits = getLengthBits(mode, VERSION);
+      const rightShift = (4 + lengthBits) & 7;
+      const leftShift = 8 - rightShift;
+      const andMask = (1 << rightShift) - 1;
+      const dataIndexStart = lengthBits > 11 ? 2 : 1;
+
+      data[0] = (mode << 4) + (content.length >> (lengthBits - 4));
+      if (lengthBits > 12) {
+        data[1] = (content.length >> rightShift) & 255;
+      }
+      data[dataIndexStart] = (content.length & andMask) << leftShift;
+
+      for (let index = 0; index < content.length; index++) {
+        const byte = content.charCodeAt(index);
+        data[index + dataIndexStart] |= byte >> rightShift;
+        data[index + dataIndexStart + 1] = (byte & andMask) << leftShift;
+      }
+      for (let index = 0; index < dataCodewords - content.length - 2; index++) {
+        const byte = index & 1 ? 17 : 236;
+        data[index + content.length + 2] = byte;
+      }
+      return data;
+    }
+    function getEDC(data) {
+      const edcLen = TOTAL_CODEWORDS - data.length;
+      const bigPoly = new Uint8Array(TOTAL_CODEWORDS);
+      bigPoly.set(data, 0);
+      // const result = polyDiv(bigPoly, polys[edcLen - 1]);
+      // return result.rest;
+      return polyRest(bigPoly, polys[edcLen - 1]);
+    }
+
+    const VERSION = 2;
+    const SIZE = 17 + VERSION * 4;
+    // Data + EDC codewords for version-2 QR Codes
+    const TOTAL_CODEWORDS = 44;
+
+    var qrCode = Array.from({ length: SIZE }, () => new Uint8Array(SIZE));
+    function placeStruct(serialized, row, col, grid = qrCode) {
+      const rows = serialized.split(/\s+/);
+      rows.forEach((sequence, rowIndex) => {
+        sequence.split('').forEach((cell, cellIndex) => {
+          if (cell !== '.') {
+            grid[row + rowIndex][col + cellIndex] = +cell;
+          }
+        });
+      });
+    }
+
+    [[0, 0], [SIZE - 7, 0], [0, SIZE - 7]].forEach(([row, col]) => {
+      placeStruct('1111111 1000001 1011101 1011101 1011101 1000001 1111111', row, col);
+    });
+    placeStruct('11111 10001 10101 10001 11111', SIZE - 9, SIZE - 9);
+    placeStruct('00000000', 7, 0);
+    placeStruct('0 0 0 0 0 0 0', 0, 7);
+    placeStruct('00000000', SIZE - 8, 0);
+    placeStruct('0 0 0 0 0 0 0', 0, SIZE - 8);
+    placeStruct('00000000', 7, SIZE - 8);
+    placeStruct('0 0 0 0 0 0 0', SIZE - 7, 7);
+    placeStruct('10'.repeat(VERSION * 2) + '1', 6, 8);
+    placeStruct('1 0 '.repeat(VERSION * 2) + '1', 8, 6);
+    placeStruct('1', SIZE - 8, 8);
+
+    const field = document.querySelector('aside');
+
+    function drawQRCode(grid = qrCode) {
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          const index = row * (SIZE) + col
+          const pixel = field.children[index] || field.appendChild(Object.assign(document.createElement('div'), { className: 'pixel' }));
+          const isLit = grid[row][col] !== 0;
+          pixel.classList.toggle('lit', isLit);
+        }
+      }
+      while (field.children.length > (SIZE + 8) * (SIZE + 8)) {
+        field.removeChild(field.lastElementChild);
+      }
+    }
+
+    function* getSequence() {
+      let rowStep = -1;
+      let row = SIZE - 1;
+      let col = SIZE - 1;
+      const bits = TOTAL_CODEWORDS << 3;
+      let colshift = 1;
+      const goToNextFreePixel = () => {
+        do {
+          if ((col & 1) === colshift) {
+            row += rowStep;
+            if (row === -1 || row === SIZE) {
+              rowStep = -rowStep;
+              row += rowStep;
+              if (col === 7) {
+                colshift = 0;
+                col--;
+              }
+              col--;
+            } else {
+              col++;
+            }
+          } else {
+            col--;
+          }
+        } while (qrCode[row][col]);
+      };
+      for (let index = 0; index < bits; index++) {
+        yield [row, col];
+        goToNextFreePixel();
+      }
+    }
+
+    placeStruct('111111111 '.repeat(9), 0, 0);
+    placeStruct('11111111 '.repeat(9), 0, SIZE - 8);
+    placeStruct('111111111 '.repeat(8), SIZE - 8, 0);
+    placeStruct('1'.repeat(VERSION * 4), 6, 9);
+    placeStruct('1 '.repeat(VERSION * 4), 9, 6);
+    placeStruct('11111 '.repeat(5), SIZE - 9, SIZE - 9);
+    placeStruct('1', SIZE - 8, 8);
+
+    const pixelSequence = Array.from(getSequence());
+
+    function placeData(...seqs) {
+      let index = 0;
+      seqs.forEach(bytes => {
+        bytes.forEach(byte => {
+          for (let bitIndex = 7; bitIndex >= 0; bitIndex--) {
+            const [row, col] = pixelSequence[index];
+            qrCode[row][col] = (byte >> bitIndex) & 1;
+            index++;
+          }
+        })
+      });
+    }
+
+    const MASK_FNS = [
+      (row, column) => ((row + column) & 1) === 0,
+      (row, column) => (row & 1) === 0,
+      (row, column) => column % 3 === 0,
+      (row, column) => (row + column) % 3 === 0,
+      (row, column) => (((row >> 1) + Math.floor(column / 3)) & 1) === 0,
+      (row, column) => ((row * column) & 1) + ((row * column) % 3) === 0,
+      (row, column) => ((((row * column) & 1) + ((row * column) % 3)) & 1) === 0,
+      (row, column) => ((((row + column) & 1) + ((row * column) % 3)) & 1) === 0,
+    ];
+    const MASKS = MASK_FNS.map(fn => qrCode.map((line, row) => line.map((cell, column) => !cell && fn(row, column) ? 1 : 0)));
+
+    function applyMask(maskIndex, level) {
+      const mask = MASKS[maskIndex];
+      const applied = qrCode.map((line, row) => line.map((cell, column) => cell ^ mask[row][column]));
+      const formatPoly = new Uint8Array(15);
+      const errorLevelIndex = EDC_ORDER.indexOf(level);
+      formatPoly[0] = errorLevelIndex >> 1;
+      formatPoly[1] = errorLevelIndex & 1;
+      formatPoly[2] = maskIndex >> 2;
+      formatPoly[3] = (maskIndex >> 1) & 1;
+      formatPoly[4] = maskIndex & 1;
+      // const result = polyDiv(formatPoly, new Uint8Array([1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1]));
+      // formatPoly.set(result.rest, 5);
+      const result = polyRest(formatPoly, new Uint8Array([1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1]));
+      formatPoly.set(result, 5);
+      const FORMAT_MASK = new Uint8Array([1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0]);
+      const maskedFormatPoly = formatPoly.map((bit, index) => bit ^ FORMAT_MASK[index]);
+      applied[8].set(maskedFormatPoly.subarray(0, 6), 0);
+      applied[8].set(maskedFormatPoly.subarray(6, 8), 7);
+      applied[8].set(maskedFormatPoly.subarray(7), SIZE - 8);
+      applied[7][8] = maskedFormatPoly[8];
+      maskedFormatPoly.subarray(0, 7).forEach((cell, index) => applied[SIZE - index - 1][8] = cell);
+      maskedFormatPoly.subarray(9).forEach((cell, index) => applied[5 - index][8] = cell);
+      return applied;
+    }
+    function getColumn(grid, column) {
+      return grid.map(line => line[column]);
+    }
+    function computePenalty(grid) {
+      let totalPenalty = 0;
+
+      // Rule 1
+      function getLinePenalty(line) {
+        let count = 0;
+        let counting = 0;
+        let penalty = 0;
+        for (const cell of line) {
+          if (cell !== counting) {
+            counting = cell;
+            count = 1;
+          } else {
+            count++;
+            if (count === 5) {
+              penalty += 3;
+            } else if (count > 5) {
+              penalty++;
+            }
+          }
+        }
+        return penalty;
+      }
+      const hseqs = grid.reduce((sum, line) => sum + getLinePenalty(line), 0);
+      totalPenalty += hseqs;
+      const vseqs = grid.reduce((sum, _, column) => sum + getLinePenalty(getColumn(grid, column)), 0);
+      totalPenalty += vseqs;
+
+      // Rule 2
+      let blocks = 0;
+      for (let row = 0; row < SIZE - 1; row++) {
+        for (let column = 0; column < SIZE - 1; column++) {
+          if (grid[row][column] === grid[row][column + 1] && grid[row][column] === grid[row + 1][column] && grid[row][column] === grid[row + 1][column + 1]) {
+            blocks++;
+          }
+        }
+      }
+      totalPenalty += blocks * 3;
+
+      // Rule 3
+      const pattern = new Uint8Array([1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0]);
+      const revPattern = pattern.slice().reverse();
+      let patterns = 0;
+      grid.forEach((line, col) => {
+        for (let column = 0; column < SIZE - pattern.length; column++) {
+          if ([pattern, revPattern].some(ptrn => ptrn.every((cell, index) => cell === line[column + index]))) {
+            patterns++;
+          }
+        }
+        const column = getColumn(grid, col);
+        for (let row = 0; row < SIZE - pattern.length; row++) {
+          if ([pattern, revPattern].some(ptrn => ptrn.every((cell, index) => cell === column[row + index]))) {
+            patterns++;
+          }
+        }
+      })
+      totalPenalty += patterns * 40;
+
+      // Rule 4
+      const litPixels = grid.reduce((sum, line) => sum + line.reduce((lineSum, cell) => lineSum + cell, 0), 0);
+      const diffPenalty = Math.floor(Math.abs(litPixels * 20 / SIZE / SIZE - 10)) * 10;
+      totalPenalty += diffPenalty;
+
+      return totalPenalty;
+    }
+    function applyBestMask(errorLevel) {
+      let bestAppliedMask;
+      let lowestPenalty = Infinity;
+      let bestMaskIndex;
+      for (let maskIndex = 0; maskIndex < MASKS.length; maskIndex++) {
+        const maskedGrid = applyMask(maskIndex, errorLevel);
+        const penalty = computePenalty(maskedGrid);
+        if (penalty < lowestPenalty) {
+          lowestPenalty = penalty;
+          bestAppliedMask = maskedGrid;
+          bestMaskIndex = maskIndex;
+        }
+      }
+      return { grid: bestAppliedMask, maskIndex: bestMaskIndex };
+    }
+
+    function getAlignmentCoordinates(version) {
+      if (version === 1) {
+        return [];
+      }
+      const intervals = Math.floor(version / 7) + 1;
+      const distance = 4 * version + 5; // QR code size minus 6 from each border
+      // `step` must be even; & -2 removes the parity bit (-2 === ~1)
+      const step = Math.floor(distance / intervals) + 1 & -2;
+      return [6].concat(Array.from({ length: intervals }, (_, index) => distance + 5 - (intervals - 1 - index) * step));
+    }
+
+    function getAvailableModules(version) {
+      if (version === 1) {
+        return 21 * 21 - 3 * 8 * 8 - 2 * 15 - 1 - 2 * 5;
+      }
+      const alignmentCoords = getAlignmentCoordinates(version);
+      return (version * 4 + 17) ** 2
+        - 3 * 8 * 8 // Finder patterns and separators
+        - 2 * 15 - 1 // Mask + EDC info and dark module
+        - (alignmentCoords.length ** 2 - 3) * 5 * 5 // Alignment patterns
+        - 2 * (version * 4 + 1) // Timing patterns
+        + (alignmentCoords.length - 2) * 5 * 2 // Readding intersections with timing and alignment patterns
+        - (version > 6 ? 2 * 3 * 6 : 0); // Version data areas
+    }
+
+    drawQRCode();
+
+    // pixelSequence.map(([row, col]) => row * SIZE + col).forEach((cell, idx) => field.children[cell].textContent = idx);
+
+    [[1, 1], [SIZE - 6, 1], [1, SIZE - 6]].forEach(([row, col]) => {
+      placeStruct('00000 01110 01110 01110 00000', row, col);
+    });
+    placeStruct('000 010 000', SIZE - 8, SIZE - 8);
+    placeStruct('00000000 000000100', 7, 0);
+    placeStruct('00 00 00 00 00 00 01 00', 0, 7);
+    placeStruct('00000000', SIZE - 8, 0);
+    placeStruct('0 0 0 0 0 0 0', 0, SIZE - 8);
+    placeStruct('00000000 00000000', 7, SIZE - 8);
+    placeStruct('00 00 00 00 00 00 00 00', SIZE - 8, 7);
+    placeStruct('10'.repeat(VERSION * 2) + '1', 6, 8);
+    placeStruct('1 0 '.repeat(VERSION * 2) + '1', 8, 6);
+    // drawQRCode();
+
+    const outputs = Array.from(document.querySelectorAll('[data-value]')).reduce((map, el) => Object.assign(map, { [el.dataset.value]: el }), {});
+    document.querySelector('input').addEventListener('input', ({ target }) => {
+      if (target.validity.valid) {
+        const errorLevel = getErrorLevel(target.value);
+        outputs.quality.textContent = errorLevel;
+        const data = getByteData(target.value, LIMITS[errorLevel] + 2);
+        outputs.data.textContent = data.join(' ');
+        const edc = getEDC(data);
+        outputs.edc.textContent = edc.join(' ');
+        placeData(data, edc);
+        const maskData = applyBestMask(errorLevel);
+        outputs.mask.textContent = maskData.maskIndex;
+        drawQRCode(maskData.grid);
+        // drawQRCode();
+      }
+    });
+  </script>
+  <script src="./qr-code-lib.js"></script>
+</body>
+
+</html>
