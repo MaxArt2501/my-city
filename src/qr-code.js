@@ -158,32 +158,25 @@ const MODULE_ORDER = [];
 {
   let rowStep = -1;
   let row = SIZE - 1;
-  let col = SIZE - 1;
-  const bits = TOTAL_CODEWORDS << 3;
-  let colshift = 1;
-  const goToNextFreePixel = () => {
-    do {
-      if ((col & 1) === colshift) {
+  let column = SIZE - 1;
+  let index = 0;
+  while (column >= 0) {
+    if (RESERVED_AREAS[row][column] === 0) {
+      MODULE_ORDER.push([row, column]);
+    }
+    if (index & 1) {
+      row += rowStep;
+      if (row === -1 || row === SIZE) {
+        rowStep = -rowStep;
         row += rowStep;
-        if (row === -1 || row === SIZE) {
-          rowStep = -rowStep;
-          row += rowStep;
-          if (col === 7) {
-            colshift = 0;
-            col--;
-          }
-          col--;
-        } else {
-          col++;
-        }
+        column -= column === 7 ? 2 : 1;
       } else {
-        col--;
+        column++;
       }
-    } while (RESERVED_AREAS[row][col]);
-  };
-  for (let index = 0; index < bits; index++) {
-    MODULE_ORDER.push([row, col]);
-    goToNextFreePixel();
+    } else {
+      column--;
+    }
+    index++;
   }
 }
 
