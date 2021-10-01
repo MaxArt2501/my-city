@@ -139,20 +139,28 @@ declare var BarcodeDetector: {
   getSupportedFormats(): Promise<BarcodeFormat[]>;
 };
 
-/**
- * Should create an element for an item of data, and attach it to the DOM tree
- */
-type ElementFactory = (index: number) => HTMLElement | SVGElement;
+// Due to TypeScript 4.4's absurd crippling and deprecation of HTMLDialogElement
+interface HTMLDialogElement extends HTMLElement {
+  open: boolean;
+  returnValue: string;
+  close(returnValue?: string): void;
+  show(): void;
+  showModal(): void;
+  addEventListener<K extends keyof HTMLElementEventMap>(
+    type: K,
+    listener: (this: HTMLDialogElement, ev: HTMLElementEventMap[K]) => any,
+    options?: boolean | AddEventListenerOptions
+  ): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof HTMLElementEventMap>(
+    type: K,
+    listener: (this: HTMLDialogElement, ev: HTMLElementEventMap[K]) => any,
+    options?: boolean | EventListenerOptions
+  ): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
-type ElementUpdater = (element: HTMLElement | SVGElement, dataItem: any, index: number) => void;
-
-type ListRenderer = (
-  dataList: Array<any>,
-  existingElements: ArrayLike<HTMLElement | SVGElement>,
-  elementFactory: ElementFactory,
-  elementUpdater: ElementUpdater
-) => void;
-
-type DirectionArrow = 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft';
-
-type ArrowGuard = (key: string) => key is DirectionArrow;
+declare var HTMLDialogElement: {
+  prototype: HTMLDialogElement;
+  new (): HTMLDialogElement;
+};
