@@ -399,10 +399,6 @@ solverWorker.addEventListener('message', event => {
   }
 });
 
-function getSolver() {
-  return solverWorker;
-}
-
 /** @type {Map.<number, { resolve(value: unknown): void; reject(value: unknown): void; }>} */
 const solverRequests = new Map();
 let solverRequestCount = 0;

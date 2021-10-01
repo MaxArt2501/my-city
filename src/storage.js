@@ -126,13 +126,12 @@ export async function addMissingCities(ids) {
   const inStore = await getAllCityIds();
   const added = new Date().toISOString();
   const missingIds = ids.filter(id => !inStore.includes(id));
-  /** @type {number[]} */
-  const difficulties = await Promise.all(
-    missingIds.map(id => requestSolver('computeCityDifficulty', { borderHints: deserializeCity(id).borderHints }))
-  );
-  return batchSaveCities(
-    missingIds.map((id, index) => ({ id, attempts: [], history: [], lastPlayed: null, added, difficulty: difficulties[index] }))
-  );
+  for (const id of missingIds) {
+    requestSolver('computeCityDifficulty', { borderHints: deserializeCity(id).borderHints }).then(difficulty =>
+      updateCityData(id, { difficulty })
+    );
+  }
+  return batchSaveCities(missingIds.map((id, index) => ({ id, attempts: [], history: [], lastPlayed: null, added, difficulty: null })));
 }
 
 /**
