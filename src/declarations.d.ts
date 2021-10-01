@@ -97,6 +97,9 @@ interface KeyboardEvent {
 interface MouseEvent {
   readonly target: HTMLElement | null;
 }
+interface NavigatorContentUtils {
+  registerProtocolHandler(scheme: string, url: string | URL, title?: string): void;
+}
 
 interface Point2D {
   x: number;
