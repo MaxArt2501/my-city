@@ -79,6 +79,58 @@ interface QRCodeData {
   qrCode: Uint16Array[];
 }
 
+/**
+ * Should create an element for an item of data, and attach it to the DOM tree
+ */
+type ElementFactory = (index: number) => HTMLElement | SVGElement;
+
+type ElementUpdater = (element: HTMLElement | SVGElement, dataItem: any, index: number) => void;
+
+type ListRenderer = (
+  dataList: Array<any>,
+  existingElements: ArrayLike<HTMLElement | SVGElement>,
+  elementFactory: ElementFactory,
+  elementUpdater: ElementUpdater
+) => void;
+
+type DirectionArrow = 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft';
+
+type ArrowGuard = (key: string) => key is DirectionArrow;
+
+type SolverRequest = {
+  token: string;
+} & (
+  | {
+      request: 'hint';
+      buildings: number[][];
+      borderHints: BorderHints;
+    }
+  | {
+      request: 'difficulty';
+      borderHints: BorderHints;
+    }
+  | {
+      request: 'getAllowedHeights';
+      buildings: number[][];
+      borderHints: BorderHints;
+    }
+  | {
+      request: 'getFieldErrors';
+      buildings: number[][];
+    }
+  | {
+      request: 'getBorderErrors';
+      buildings: number[][];
+      borderHints: BorderHints;
+    }
+  | {
+      request: 'computeCityDifficulty';
+      borderHints: BorderHints;
+    }
+);
+
+type SolverRequestType = SolverRequest['request'];
+
 /*
  * Reasonable overrides for DOM definitions
  */

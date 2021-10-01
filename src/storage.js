@@ -1,7 +1,7 @@
 // @ts-check
+import { requestSolver } from './game.js';
 import { VERSION } from './my-city.js';
 import { deserializeCity } from './serialize.js';
-import { computeCityDifficulty } from './utils.js';
 
 /** @type {Promise.<IDBDatabase>} */
 export const dbPromise = new Promise((resolve, reject) => {
@@ -125,10 +125,13 @@ export function batchSaveCities(cities) {
 export async function addMissingCities(ids) {
   const inStore = await getAllCityIds();
   const added = new Date().toISOString();
+  const missingIds = ids.filter(id => !inStore.includes(id));
+  /** @type {number[]} */
+  const difficulties = await Promise.all(
+    missingIds.map(id => requestSolver('computeCityDifficulty', { borderHints: deserializeCity(id).borderHints }))
+  );
   return batchSaveCities(
-    ids
-      .filter(id => !inStore.includes(id))
-      .map(id => ({ id, attempts: [], history: [], lastPlayed: null, added, difficulty: computeCityDifficulty(deserializeCity(id)) }))
+    missingIds.map((id, index) => ({ id, attempts: [], history: [], lastPlayed: null, added, difficulty: difficulties[index] }))
   );
 }
 
