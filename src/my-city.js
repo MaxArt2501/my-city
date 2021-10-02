@@ -59,6 +59,10 @@ if ('registerProtocolHandler' in navigator) {
   navigator.registerProtocolHandler(PROTOCOL, `${path}#%s`, 'My City puzzle handler');
 }
 
+if (typeof HTMLDialogElement === 'undefined') {
+  import('./dialog.js');
+}
+
 /**
  * Load a JSON file of cities
  * @param {string} path

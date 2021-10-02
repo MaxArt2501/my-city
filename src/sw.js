@@ -10,6 +10,8 @@ self.addEventListener('install', event => {
         cache.addAll([
           `${path}cities.json`,
           `${path}data-manager.js`,
+          `${path}dialog.css`,
+          `${path}dialog.js`,
           `${path}favicon.png`,
           `${path}game.js`,
           `${path}index.html`,
