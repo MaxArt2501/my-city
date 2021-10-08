@@ -109,23 +109,22 @@ function polyMul(poly1, poly2) {
  * Divides two polynomials in GF(256)
  * @param {Uint8Array} dividend Array of coefficients of the first polinomial
  * @param {Uint8Array} divisor Array of coefficients of the first polinomial
- * @returns {Record<'quotient' | 'rest', Uint8Array>} Array of coefficients of the quotient and rest polinomials
+ * @returns {Uint8Array} Array of coefficients of the quotient and rest polinomials
  */
-function polyDiv(dividend, divisor) {
-  const quotient = new Uint8Array(Math.max(0, dividend.length - divisor.length) + 1);
+function polyRest(dividend, divisor) {
+  const quotientLength = dividend.length - divisor.length + 1;
   let rest = new Uint8Array(dividend);
-  for (let index = 0; index < quotient.length; index++) {
+  for (let index = 0; index < quotientLength; index++) {
     if (rest[0]) {
       const factor = div(rest[0], divisor[0]);
       const subtr = new Uint8Array(rest.length);
       subtr.set(polyMul(divisor, [factor]), 0);
       rest = rest.map((value, idx) => value ^ subtr[idx]).slice(1);
-      quotient[index] = factor;
     } else {
       rest = rest.slice(1);
     }
   }
-  return { quotient, rest };
+  return rest;
 }
 
 /** @type {Array<Uint8Array>} */
@@ -221,8 +220,7 @@ function getEDC(data) {
   const edcLen = TOTAL_CODEWORDS - data.length;
   const bigPoly = new Uint8Array(TOTAL_CODEWORDS);
   bigPoly.set(data, 0);
-  const result = polyDiv(bigPoly, EDC_POLYS[edcLen - 1]);
-  return result.rest;
+  return polyRest(bigPoly, EDC_POLYS[edcLen - 1]);
 }
 
 /**
@@ -243,6 +241,9 @@ function placeData(matrix, ...codewordLists) {
   });
 }
 
+const FORMAT_MASK = new Uint8Array([1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0]);
+const FORMAT_DIVISOR = new Uint8Array([1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1]);
+
 /**
  * Applies the mask corresponding to the given index to the matrix
  * @param {Array<Uint8Array>} matrix
@@ -260,9 +261,8 @@ function applyMask(matrix, maskIndex, level) {
   formatPoly[2] = maskIndex >> 2;
   formatPoly[3] = (maskIndex >> 1) & 1;
   formatPoly[4] = maskIndex & 1;
-  const result = polyDiv(formatPoly, new Uint8Array([1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1]));
-  formatPoly.set(result.rest, 5);
-  const FORMAT_MASK = new Uint8Array([1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0]);
+  const rest = polyRest(formatPoly, FORMAT_DIVISOR);
+  formatPoly.set(rest, 5);
   const maskedFormatPoly = formatPoly.map((bit, index) => bit ^ FORMAT_MASK[index]);
   applied[8].set(maskedFormatPoly.subarray(0, 6), 0);
   applied[8].set(maskedFormatPoly.subarray(6, 8), 7);
@@ -282,6 +282,9 @@ function applyMask(matrix, maskIndex, level) {
 function getColumn(matrix, column) {
   return matrix.map(line => line[column]);
 }
+
+const RULE_3_PATTERN = new Uint8Array([1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0]);
+const RULE_3_REVERSED_PATTERN = RULE_3_PATTERN.slice().reverse();
 
 /**
  * Computes the reading penalty of a given matrix
@@ -337,18 +340,16 @@ function computePenalty(matrix) {
   totalPenalty += blocks * 3;
 
   // Rule 3
-  const pattern = new Uint8Array([1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0]);
-  const revPattern = pattern.slice().reverse();
   let patterns = 0;
-  matrix.forEach((line, col) => {
-    for (let column = 0; column < SIZE - pattern.length; column++) {
-      if ([pattern, revPattern].some(ptrn => ptrn.every((cell, index) => cell === line[column + index]))) {
+  matrix.forEach((row, index) => {
+    for (let columnIndex = 0; columnIndex < SIZE - RULE_3_PATTERN.length; columnIndex++) {
+      if ([RULE_3_PATTERN, RULE_3_REVERSED_PATTERN].some(ptrn => ptrn.every((cell, index) => cell === row[columnIndex + index]))) {
         patterns++;
       }
     }
-    const column = getColumn(matrix, col);
-    for (let row = 0; row < SIZE - pattern.length; row++) {
-      if ([pattern, revPattern].some(ptrn => ptrn.every((cell, index) => cell === column[row + index]))) {
+    const column = getColumn(matrix, index);
+    for (let rowIndex = 0; rowIndex < SIZE - RULE_3_PATTERN.length; rowIndex++) {
+      if ([RULE_3_PATTERN, RULE_3_REVERSED_PATTERN].some(ptrn => ptrn.every((cell, index) => cell === column[rowIndex + index]))) {
         patterns++;
       }
     }
