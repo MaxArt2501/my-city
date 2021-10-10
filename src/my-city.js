@@ -6,7 +6,7 @@ import { deserializeCity, serializeCity } from './serialize.js';
 import { addMissingCities, batchSaveCities, getAllCities, getCityData, updateCityData } from './storage.js';
 import { formatElapsed, formatSize, getAttemptElapsed, getCityIdFromURI, isAttemptSuccessful, toISODuration } from './utils.js';
 
-export const VERSION = '0.5.1';
+export const VERSION = '0.5.2';
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register(location.pathname + 'sw.js', { scope: location.pathname }).then(registration => {
