@@ -2,18 +2,7 @@
 import { dialogs, resetControls } from './input.js';
 import { deserializeState, serializeCity, serializeState } from './serialize.js';
 import { setMetadata, updateCityData } from './storage.js';
-import {
-  createEmptyState,
-  formatElapsed,
-  getAllowedHeights,
-  getAttemptElapsed,
-  getBorderErrors,
-  getFieldErrors,
-  isAttemptSuccessful,
-  renderForList,
-  solve,
-  toISODuration
-} from './utils.js';
+import { createEmptyState, formatElapsed, getAttemptElapsed, isAttemptSuccessful, renderForList, toISODuration } from './utils.js';
 
 /** @type {number[][]} */
 export let buildings;
@@ -274,11 +263,11 @@ export function toggleMode(forceMarkMode) {
 /**
  * Computes the errors in the field and eventually renders them
  */
-function checkForErrors() {
-  const fieldErrors = Array.from(getFieldErrors(buildings));
+async function checkForErrors() {
+  const fieldErrors = await requestSolver('getFieldErrors', { buildings });
   fillErrors('.city > .cell', fieldErrors);
 
-  const borderErrors = Array.from(getBorderErrors(buildings, currentCity.borderHints));
+  const borderErrors = await requestSolver('getBorderErrors', { buildings, borderHints: currentCity.borderHints });
   fillErrors('.hints > .cell', borderErrors);
 
   gameErrors = [...fieldErrors, ...borderErrors];
@@ -389,15 +378,49 @@ export function travelHistory(shift) {
 /**
  * Fills the empty cells with annotations for all the admissible height values
  */
-export function fillMarks() {
-  marks = getAllowedHeights(buildings, currentCity.borderHints);
+export async function fillMarks() {
+  marks = await requestSolver('getAllowedHeights', { buildings, borderHints: currentCity.borderHints });
   updateHistory();
   renderState();
 }
 
-export function placeHint() {
+/** @type {Worker} */
+const solverWorker = new Worker('./solver.js');
+solverWorker.addEventListener('message', event => {
+  const { token, result, error } = event.data;
+  const promiseSettlers = solverRequests.get(token);
+  if (promiseSettlers) {
+    if (error) {
+      promiseSettlers.reject(error);
+    } else {
+      promiseSettlers.resolve(result);
+    }
+    solverRequests.delete(token);
+  }
+});
+
+/** @type {Map.<number, { resolve(value: unknown): void; reject(value: unknown): void; }>} */
+const solverRequests = new Map();
+let solverRequestCount = 0;
+
+/**
+ * Makes a request to the solver
+ * @param {SolverRequestType} request
+ * @param {object} params
+ * @returns {Promise}
+ */
+export function requestSolver(request, params) {
+  const token = solverRequestCount++;
+  const promise = new Promise((resolve, reject) => {
+    solverRequests.set(token, { resolve, reject });
+  });
+  solverWorker.postMessage({ request, token, ...params });
+  return promise;
+}
+
+export async function placeHint() {
   /** @type {[number, number, number]} */
-  const hint = solve(currentCity.borderHints, buildings).next().value;
+  const hint = await requestSolver('hint', { borderHints: currentCity.borderHints, buildings });
   if (hint) {
     updateCellValue(...hint);
   } else {

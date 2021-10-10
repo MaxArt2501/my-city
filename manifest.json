@@ -1,5 +1,7 @@
 {
   "name": "My City",
+  "short_name": "My City",
+  "description": "Web version of 'La mia citt\u00e0' by Giorgio Dendi",
   "display": "standalone",
   "start_url": ".",
   "icons": [

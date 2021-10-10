@@ -1,4 +1,4 @@
-const VERSION = '0.5.1';
+const VERSION = '0.5.2';
 const CACHE_NAME = `MyCity_v${VERSION}`;
 
 self.addEventListener('install', event => {
@@ -10,6 +10,8 @@ self.addEventListener('install', event => {
         cache.addAll([
           `${path}cities.json`,
           `${path}data-manager.js`,
+          `${path}dialog.css`,
+          `${path}dialog.js`,
           `${path}favicon.png`,
           `${path}game.js`,
           `${path}index.html`,

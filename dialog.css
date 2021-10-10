@@ -1,0 +1,19 @@
+dialog {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+  padding: 1em;
+  color: black;
+  background: white;
+  z-index: 1000;
+  box-shadow: 0 0 0 100vmax #0006;
+}
+dialog[open] {
+  display: block;
+}
