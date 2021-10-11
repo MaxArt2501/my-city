@@ -358,7 +358,7 @@ function findNextDetermined(marks) {
 }
 
 /**
- *
+ * Generates the moves to solve a puzzle
  * @param {BorderHints} borderHints
  * @param {number[][]} buildings
  * @param {Set<number>[][]} allowedHeights
