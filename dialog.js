@@ -21,5 +21,14 @@ link.rel = 'stylesheet';
 link.href = 'dialog.css';
 document.head.appendChild(link);
 
+document.addEventListener('keydown', ({ key }) => {
+  if (key === 'Escape') {
+    const openDialogs = document.querySelectorAll('dialog[open]');
+    if (openDialogs.length > 0) {
+      openDialogs[openDialogs.length - 1].close();
+    }
+  }
+});
+
 // Because otherwise TypeScript complains this is not a module...
 export {};

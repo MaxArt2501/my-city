@@ -328,6 +328,10 @@ time.current {
   padding: 0 0.175em 0.1em;
 }
 
+nav .city .cell {
+  display: none;
+}
+
 section {
   display: grid;
   grid-template-columns: auto auto auto;
@@ -344,7 +348,7 @@ section {
 .hints {
   background-color: lightblue;
   display: flex;
-  box-shadow: 0 0 0 var(--cell-border) black;
+  outline: var(--cell-border) solid black;
 }
 .top {
   grid-area: 1 / 2 / 2 / 3;
@@ -374,16 +378,35 @@ section {
   grid-template-columns: repeat(var(--city-width), minmax(0, var(--cell-size)));
   background-color: white;
 }
+.hints,
+.city {
+  background-image: linear-gradient(
+      to right,
+      currentColor var(--cell-border),
+      transparent var(--cell-border),
+      transparent calc(var(--cell-size) - var(--cell-border)),
+      currentColor calc(var(--cell-size) - var(--cell-border))
+    ),
+    linear-gradient(
+      to bottom,
+      currentColor var(--cell-border),
+      transparent var(--cell-border),
+      transparent calc(var(--cell-size) - var(--cell-border)),
+      currentColor calc(var(--cell-size) - var(--cell-border))
+    );
+  background-size: var(--cell-size) auto, auto var(--cell-size);
+}
 
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  box-shadow: inset 0 0 0 var(--cell-border);
   display: grid;
   grid-template-columns: repeat(var(--mark-grid-cols), 1fr);
   grid-template-rows: repeat(var(--mark-grid-rows), 1fr);
   transform: scale(1);
   transition: transform var(--animation-duration), color 0s, background-color 0s;
+  padding: var(--cell-border);
+  background-clip: content-box;
 }
 .cell[aria-current='true']:not(.from-click) {
   border-color: lightcoral;
@@ -432,7 +455,7 @@ section {
 }
 
 .error {
-  color: red;
+  color: #ec0000;
 }
 
 .value {
@@ -444,7 +467,6 @@ section {
 }
 .city .value::before,
 .city .value::after {
-  content: '';
   position: absolute;
   bottom: 0;
   right: 0;
@@ -491,12 +513,13 @@ section.complete::after {
 section.complete::before {
   content: 'Complete!';
   grid-area: 3/1/4/4;
+  transform: translateZ(0.0001px);
 }
 section.complete::after {
   content: 'Time: ' attr(data-completion-time);
   grid-area: 1/3/4/4;
   writing-mode: vertical-lr;
-  transform: rotate(180deg);
+  transform: rotate(180deg) translateZ(0.0001px);
 }
 section.complete .city {
   background: currentColor;
@@ -514,6 +537,7 @@ section.complete .city .cell {
 }
 section.complete .city .value::before,
 section.complete .city .value::after {
+  content: '';
   height: var(--cell-height);
 }
 section.complete .city .value {
